@@ -1,6 +1,6 @@
 /////////////////////////////////
 // cuts
-double const  weight =1./20000;//0.001;//
+double const  weight =1.;///10000;//0.001;//
 double Mjj =0;//400; 
 double PTjj = 0;//400; 
 double DeltayVBF = 0;//3;
@@ -52,7 +52,9 @@ double const DetaHH = 20;//1.3;
 double const DetaH = 150;//1.5;
 //////////////////////////////////
 // on the wwbb analysis
+double const wmass = 80.4;
+double const tmass = 175.0;
 double const ptlepton = 0.0;
 double const lepiso = 0.0;
 double const MeeMax = 3000.0;
-double const MnunuMax = 3000.0;
+double const MetMin = 0.0;

@@ -53,7 +53,7 @@ double const DetaH = 150;//1.5;
 //////////////////////////////////
 // on the wwbb analysis
 double const wmass = 80.4;
-double const tmass = 175.0;
+double const tmass = 173.0;
 double const ptlepton = 0.0;
 double const lepiso = 0.0;
 double const MeeMax = 3000.0;

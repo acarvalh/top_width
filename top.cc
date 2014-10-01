@@ -49,7 +49,7 @@ int main() {
   cout<<"\n\n reading file = "<<file<<endl;
   //return 0;
   in1.open(file.c_str());
-  for(unsigned int ievent=0;ievent<10000;ievent++){ // for each event  // 
+  for(unsigned int ievent=0;ievent<3000;ievent++){ // for each event  // 
      string c;
      in1>>c;
      double Px, Py , Pz, E;
@@ -89,13 +89,12 @@ int main() {
        bool lepcuts=false, hadtopreco=false, lepwreco=false;
        int count=0; for(unsigned int i = 0; i < njets; i++) if(btag[i]>0)count++;
        if(counterl==1 && njets>3 // only two jets to reco the hadronic W and make enought balance to reco met 
-          && count>1
+          //&& count>1
          ){ //cout<<"njets "<<njets<<" nleptons "<<counterl<<" pzl "<< neutrinos.at(0).pz()<<endl;
          lepcuts=recol(met,jets,leptons,neutrinos); // returned the leptons
          //if(lepcuts) hadtopreco=recohadt(bh,bl,jets,leptons,neutrinos,btag,btrue,met); 
-         if(lepcuts) 
-           lepwreco = recolept2step(bh,bl,jets,leptons,neutrinos,btag,btrue,met);
-         //lepwreco = recotlepeq(bh,bl,jets,leptons,neutrinos,btag,btrue,met);
+         if(lepcuts) lepwreco = recolept2step(bh,bl,jets,leptons,neutrinos,btag,btrue,met); 
+         //if(lepcuts)lepwreco = recotlepeq(bh,bl,jets,leptons,neutrinos,btag,btrue,met);
        }
   } // close for each event
   save_hist(isample);

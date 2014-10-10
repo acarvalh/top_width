@@ -3,7 +3,9 @@ void hello();
 //////////////////////////////////////////////////////////
 // histos
 int decla(int);
-int save_hist(int);
+int save_hist(int,int,int);
+//////////////////////////////////////////////////////////
+int truetops(vector<PseudoJet> jets, vector<PseudoJet> leptons,vector<PseudoJet> neutrinos, vector<int> btag, vector<int> btrue);
 //////////////////////////////////////////////////////////
 // tags
 int recojets(vector<PseudoJet> particles,vector<PseudoJet> & jets, vector<int> & btag, 

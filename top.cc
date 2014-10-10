@@ -39,17 +39,18 @@ int main() {
   vector<string> filename;
   string file, path,data;
   path="/home/xanda/Documents/ggAnalysis/Parton/code/top_width/";
-  string sample[3] = {"onon","onoff","offon"};
+  string sample[5] = {"onon","onoff","offon","offoff","wbwb_13tev_100k"};// the last one have 50k
   data = ".lhe.decayed";
-  for(unsigned int isample=0; isample<3;isample++){
+  for(unsigned int isample=4; isample<5;isample++)
+   for(unsigned int type=0; type<6;type++){
+  decla(0);
   file = path + sample[isample]+ data;
   //////////////////////////////////
   ifstream in1;
-  decla(0);
   cout<<"\n\n reading file = "<<file<<endl;
   //return 0;
   in1.open(file.c_str());
-  for(unsigned int ievent=0;ievent<3000;ievent++){ // for each event  // 
+  for(unsigned int ievent=0;ievent<100000;ievent++){ // for each event  // 
      string c;
      in1>>c;
      double Px, Py , Pz, E;
@@ -84,7 +85,7 @@ int main() {
        vector<PseudoJet> jets; 
        vector<int> btag, bmistag, fattag, btrue; int bh,bl; double met;
        int njets = recojets(particles, jets,btag,bmistag,fattag,btrue);
-       
+       //cout<<"here"<<endl;
        // lepton isolation and basic cuts
        bool lepcuts=false, hadtopreco=false, lepwreco=false;
        int count=0; for(unsigned int i = 0; i < njets; i++) if(btag[i]>0)count++;
@@ -92,12 +93,15 @@ int main() {
           //&& count>1
          ){ //cout<<"njets "<<njets<<" nleptons "<<counterl<<" pzl "<< neutrinos.at(0).pz()<<endl;
          lepcuts=recol(met,jets,leptons,neutrinos); // returned the leptons
-         //if(lepcuts) hadtopreco=recohadt(bh,bl,jets,leptons,neutrinos,btag,btrue,met); 
-         if(lepcuts) lepwreco = recolept2step(bh,bl,jets,leptons,neutrinos,btag,btrue,met); 
-         //if(lepcuts)lepwreco = recotlepeq(bh,bl,jets,leptons,neutrinos,btag,btrue,met);
+         int true_tops = truetops(jets,leptons,neutrinos,btag,btrue);  
+              // by now it only works at parton level
+         if(lepcuts && reco == 0 && true_tops==type ) hadtopreco=recohadt(bh,bl,jets,leptons,neutrinos,btag,btrue,met); 
+         if(lepcuts && reco == 1 && true_tops==type ) lepwreco = recolept2step(bh,bl,jets,leptons,neutrinos,btag,btrue,met); 
+         //if(lepcuts && true_tops==type )lepwreco = recotlepeq(bh,bl,jets,leptons,neutrinos,btag,btrue,met);
        }
   } // close for each event
-  save_hist(isample);
+  cout<<"\n\n closing file = "<<file<<endl;
+  save_hist(isample,reco,type);
   in1.close();
   } // close fo sample
 }

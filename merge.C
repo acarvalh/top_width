@@ -61,17 +61,20 @@ TStyle *defaultStyle = new TStyle("defaultStyle","Default Style");
     defaultStyle->SetPadTickY(1);
     defaultStyle->cd();
 /////////////////////////////////////////////////////
-int nmass = 4;
+int nmass = 6;
 const char* channel[nmass]={
-"Control_shower_2_lep.root", //1
-"Control_shower_0_lep.root", //1
-"Control_shower_1_lep.root",//2
-"Control_shower_2_lep.root"//3
+"Control_reco_0_place_0_.root",  
+"Control_reco_0_place_1_.root",  
+"Control_reco_0_place_2_.root",
+"Control_reco_0_place_3_.root",  
+"Control_reco_0_place_4_.root",  
+"Control_reco_0_place_5_.root"
 };
-const char* lege[nmass]={"dumb","ON-ON","ON-OFF","OFF-ON"};
-int maxtodo=4; 
-int todo[maxtodo]={0,1,2,3};//3 ,2 ,1 };//27,28,34, // 0,21,16,13, 9 ,5 ,
-double masses[maxtodo] = {0,1,2,3};//,
+const char* lege[nmass]={" hreco hon "," hreco hlow "," hreco hhigh ",
+                         " hreco lon "," hreco llow "," hreco lhigh ",};
+int maxtodo=3; 
+int todo[maxtodo]={3,4,5};//3 ,2 ,1 };//27,28,34, // 0,21,16,13, 9 ,5 ,
+double masses[maxtodo] = {5,4,3};//,
 //
 TLegend *leg = new TLegend(0.65,0.60,0.99,0.99);
    leg->SetTextSize(0.04146853);
@@ -80,7 +83,7 @@ TLegend *leg = new TLegend(0.65,0.60,0.99,0.99);
    leg->SetLineWidth(1);
    leg->SetFillColor(0);
 //
- int nplots =25;
+ int nplots =35;
  const char* namplots[nplots] = {
            "njets_passing_kLooseID_ct4.png",
 	   "btagselected.png",
@@ -107,8 +110,22 @@ TLegend *leg = new TLegend(0.65,0.60,0.99,0.99);
            "HW1LepThisteta.png",
            "HW1LepThistphi.png",
            "pnuzerror.png",
-           "recotruthlept.png"
+           "recotruthlept.png",
+           //
+           "hadtop.png",
+           "leptop.png",
+           //
+           "wmt.png",
+           "tmt.png",
+           "detalb.png",
+           //
+           "mraz.png",
+           "mrazt.png",
+           "razratio.png",
+           "tmtal.png",
+           "mlb.png"
            };
+
 TH1D* plots[maxtodo][nplots];//[file][plot]
 TFile *file[maxtodo];
 for(int i=0;i<maxtodo;i++){
@@ -140,8 +157,21 @@ for(int i=0;i<maxtodo;i++){
  TH1D* plots[i][22] = (TH1D* ) file[i]->Get("HW1LepThistphi;1");
  TH1D* plots[i][23] = (TH1D* ) file[i]->Get("pnuzerror;1");
  TH1D* plots[i][24] = (TH1D* ) file[i]->Get("recotruthlept;1");
+ //
+ TH1D* plots[i][25] = (TH1D* ) file[i]->Get("hadtop1;1");
+ TH1D* plots[i][26] = (TH1D* ) file[i]->Get("leptop1;1");
+ //
+ TH1D* plots[i][27] = (TH1D* ) file[i]->Get("wmt;1");
+ TH1D* plots[i][28] = (TH1D* ) file[i]->Get("tmt;1");
+ TH1D* plots[i][29] = (TH1D* ) file[i]->Get("detalb;1");
+ //
+ TH1D* plots[i][30] = (TH1D* ) file[i]->Get("mraz;1");
+ TH1D* plots[i][31] = (TH1D* ) file[i]->Get("mrazt;1");
+ TH1D* plots[i][32] = (TH1D* ) file[i]->Get("razratio;1");
+ TH1D* plots[i][33] = (TH1D* ) file[i]->Get("tmtal;1");
+ TH1D* plots[i][34] = (TH1D* ) file[i]->Get("massbl;1");
 } 
-const int sigcolor[nmass]={0,2 ,1 ,8};
+const int sigcolor[nmass]={1,2,3,4,5,6 };
 for(int k=0;k<nplots;k++) for(int l=0;l<maxtodo;l++){
 plots[l][k]->SetLineColor(sigcolor[todo[l]]);
 plots[l][k]->SetLineStyle(0);
@@ -149,33 +179,40 @@ plots[l][k]->SetLineWidth(3);
 //cout<<"here "<<k<<" "<<l<<endl;
 }
 TCanvas* PT_HAT = new TCanvas();
-PT_HAT->cd(); 
+ 
 int max=nmass;
 double high[nplots]={1,1.5,1.2,1.1,1.2,
 		     1.5,1.2,1.7,1.7,1.5,
-		     1.2,1.2,1.2,1.5,1.5}; 
+		     1.2,1.2,1.2,1.5,1.5,
+                     1.2,1.2,1.2,1.5,1.5,
+		     1.5,1.2,1.7,1.7,1.5,
+		     1.2,1.2,1.2,1.5,1.5,
+                     1.2,1.2,1.2,1.5,1.5}; 
+        PT_HAT->cd();
+  vector<double> norm; for(int j=1;j<maxtodo;j++) norm.push_back(1./plots[0][13].Integral());
+  double fixnorm = 1./10000.;
   for(int i=0;i<nplots;i++) {
-  //if(i==16 || i==4 || i==5 || i==6 || i==7  || i==12) PT_HAT->SetLogy(1); else PT_HAT->SetLogy(0);
+  //if(i==16 || i==4 || i==5 || i==6 || i==7  || i==12) PT_HAT->SetLogy(1); else 
+PT_HAT->SetLogy(1);
 	for(int j=0;j<maxtodo;j++) {
         leg->AddEntry(plots[j][i],lege[todo[j]],"l");
-        //cout<<"here "<<j<<" "<<i<<endl;
         }
-	plots[0][i].Scale(1./plots[0][i].Integral());
-        //plots[0][i].Scale(nevents[j]);
-	plots[0][i].SetMaximum(high[i]*plots[0][i].GetMaximum());
+        //double normalize0 = 1./plots[0][13].Integral();
+	//plots[0][i].Scale(norm[0]);
+        //plots[0][i].Scale(fixnorm);
+	//plots[0][i].SetMaximum(high[i]*plots[0][i].GetMaximum());
 	plots[0][i].Draw("Hist");
-	leg->Draw("same");
-	for(int j=1;j<maxtodo;j++) {
-        //	plots[j][i].Scale(nevents[j]);
-		//plots[j][i].Scale(plots[j][i].Integral());
-		if(i!=13) plots[j][i].Scale(1./plots[j][i].Integral());
-		 else if (i==13) plots[j][i].Scale(1./10000.);
+	for(int j=0;j<maxtodo;j++) {
+          // plots[j][i].Scale(1./10000.);
+          //else if (i!=13) 
+          //  plots[j][i].Scale(norm[j]);
 	         //plots[j][i].SetMaximum(high[i]*plots[j][i].GetMaximum());
 		plots[j][i].Draw("Hist,same");
 	}
         if(i==0) {TLine li(4,0.00001,4,0.25); li->Draw("same");}
         if(i==5) {TLine li3(173,0.0002,173,0.6); li3->Draw("same");}
         if(i==9) {TLine li2(80,0.00001,80,0.70); li2->Draw("same");}
+	leg->Draw("same");
 //	if( i==1 || i==5) {
  //          PT_HAT->SetLogy(1); 
            //TLine li(500,0.00001,500,0.001);
@@ -185,7 +222,6 @@ double high[nplots]={1,1.5,1.2,1.1,1.2,
 //	if(i==28 || i==22 || i==9 || i==1 || i==0 || i==29) PT_HAT->SaveAs(namplotspdf[i]);
 	PT_HAT->Clear();
 	leg->Clear();
-
   }
         PT_HAT->Close(); 
   ////////////////////////////////////////////////////////////////////////////
@@ -206,10 +242,12 @@ double high[nplots]={1,1.5,1.2,1.1,1.2,
         else if (k == 1) {cat1.push_back(njets); cout<<"mistag "<<cat1[j]<<endl;}
         else if (k == 2) {cat2.push_back(njets); cout<<"true "<<cat2[j]<<endl;}
        } // close for bins
+//
        ctot.push_back(cat0[j]+cat1[j]+cat2[j]);
-       cout<<"total "<<ctot[j]<<endl;
+       cout<<"total "<<ctot[j]/(ctot[0]+ctot[1]+ctot[2])<<endl;
+cout<<" "<<endl;
    } // close for masses
-   for(int j=0;j<maxtodo;j++) cout<<lege[todo[j]]<<" "<<ctot[j]<<" "<<plots[j][13].Integral()<<endl;
+   for(int j=0;j<maxtodo;j++) cout<<lege[todo[j]]<<" "<<ctot[j]<<" "<<cat1[j]<<" "<<cat2[j]<<endl;
 
 
 }// end file

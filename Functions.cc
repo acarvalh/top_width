@@ -27,11 +27,52 @@ using namespace std;
 /////////////////////////////////////////////////////////////////
 void hello(){cout<<"\n\n\n HELLO!!!! \n\n"<<endl;}
 /////////////////////////////////////////////////////////////////
+int truetops(vector<PseudoJet> jets, vector<PseudoJet> leptons,vector<PseudoJet> neutrinos, vector<int> btag, vector<int> btrue){
+  int bl=-1,bh=-1; vector<int> wj;
+  unsigned int jsize = jets.size();
+  for(unsigned int nj1=0; nj1< jsize; nj1++) // only works at parton level
+    if(btrue[nj1]==-5) bh=nj1; else if(btrue[nj1]==5) bl=nj1; else wj.push_back(nj1);   
+  //cout<<wj.size()<<" "<<jsize<<" "<<bl<<" "<<bh<<" "<<endl; 
+  int sample;
+  if(bh!=-1 && bl!=-1 && wj.size()>1){
+    //   cout<<jsize<<endl;
+    //cout<<wj[0]<<" "<<wj[1]<<" "<<bl<<" "<<bh<<" "<<endl;  
+    PseudoJet lepTtrue = leptons.at(0) + neutrinos.at(0) + jets.at(bl);
+    PseudoJet hadTtrue = jets.at(wj[0]) + jets.at(wj[1]) + jets.at(bh);
+    // separate samples
+    // leptonic 0 = on shell (mass within mtop +- 0.5 GeV), 1 = off down, 2 = off up
+    // hadronic 3 = on shell (mass within mtop +- 0.5 GeV), 4 = off down, 5 = off up
+    //if( hadTtrue.m()<tmass+0.5 && hadTtrue.m()>tmass-0.5) sample =0;
+    //if( hadTtrue.m()<tmass-0.5 ) sample =1;
+    //if( hadTtrue.m()>tmass+0.5 ) sample =2;
+    //
+    if( lepTtrue.m()<tmass+27 && lepTtrue.m()>=tmass-17) sample =3;
+    else if( lepTtrue.m()<tmass-17 ) sample =4;
+    else if( lepTtrue.m()>=tmass+27 ) sample =5;
+  }
+  //return 0;
+  return sample;
+} // close truetops
+/////////////////////////////////////////////////////////////////
 bool recolept2step(int & bh, int & bl,vector<PseudoJet> jets, vector<PseudoJet> leptons,vector<PseudoJet> neutrinos, vector<int> btag, vector<int> btrue, double met){
  // I did not reco the hadronic --- do not know which b to take
  // first try in the 2-step way 
  //double mw = (leptons.at(0)+neutrinos.at(0)).m();//teste
  //cout<<"met "<<met<<" pzl "<<neutrinos.at(0).pt()<<endl;
+  int blll=-1,bhhh=-1; vector<int> wj;
+  unsigned int jsize = jets.size();
+  for(unsigned int nj1=0; nj1< jsize; nj1++) // only works at parton level
+    if(btrue[nj1]==-5) bhhh=nj1; else if(btrue[nj1]==5) blll=nj1; else wj.push_back(nj1);   
+  //cout<<wj.size()<<" "<<jsize<<" "<<bl<<" "<<bh<<" "<<endl; 
+  if(bhhh!=-1 && blll!=-1 && wj.size()>1){
+    //   cout<<jsize<<endl;
+    //cout<<wj[0]<<" "<<wj[1]<<" "<<bl<<" "<<bh<<" "<<endl;  
+    PseudoJet lepTtrue = leptons.at(0) + neutrinos.at(0) + jets.at(blll);
+    PseudoJet hadTtrue = jets.at(wj[0]) + jets.at(wj[1]) + jets.at(bhhh);
+    leptop->Fill(lepTtrue.m(),weight);
+    hadtop->Fill(hadTtrue.m(),weight);
+  }
+ /////////////////////////////////////////////////////////////
  double wt = (leptons.at(0).px()*neutrinos.at(0).px()) + (leptons.at(0).py()*neutrinos.at(0).py());
  double mu = (pow(wmass,2)/2 + wt);
  double aw = (pow(leptons.at(0).pz(),2)-pow(leptons.at(0).e(),2));
@@ -96,18 +137,15 @@ bool recolept2step(int & bh, int & bl,vector<PseudoJet> jets, vector<PseudoJet> 
      if (nj1!=j1[minM] && nj1!=j2[minM] && nj1!=bl)
       { ptj.push_back(jets.at(nj1).pt()); nptj.push_back(nj1);  }
    int maxPt = TMath::LocMax(ptj.size(), &ptj[0]); 
-   PseudoJet hadt = hadW;// + jets.at(nptj[maxPt]);
+   PseudoJet hadt = hadW + jets.at(nptj[maxPt]);
    ////////////////////////////////////////////////////////////////////
    // test truth 
    int truth; 
-   if(btrue[j1[minM]]==0 && btrue[j2[minM]]==0  && btrue[bl]==-5 ) truth=1; else truth=0; 
+   if(btrue[j1[minM]]==0 && btrue[j2[minM]]==0  && btrue[bl]==-5 && btrue[nptj[maxPt]]==5 ) truth=1; else truth=0; 
    ///////////////////////////////////////////////////////////////////
-   //cout<<" the hadronic w's are: "<<j1[minM]<<" "<<j2[minM]<<" "<<btrue[j1[minM]]<<" "<<btrue[j2[minM]]<<endl;
-   //unsigned wjet1=j1[minM], wjet2=j2[minM]; 
-   //recowm=lepW.m(); recowpt=lepW.pt();recoweta=lepW.eta();recowphi=lepW.phi();
-   ///////////////////////////////////////////////// 
+   double detabb  = abs(jets[nptj[maxPt]].eta() - jets[bl].eta());
+   /////////////////////////////////////////////////////////////////// 
    // fill diagrams
-/*
    double leptop[13]={lept.m(),lept.pt(),lept.eta(),lept.phi(),
                      lepW.m(),lepW.pt(),lepW.eta(),lepW.phi(),
                      pnuzerror,0,0,wtransM,ttransM}; // pnuzerror,truth,mterror,wmt,tmt
@@ -117,11 +155,10 @@ bool recolept2step(int & bh, int & bl,vector<PseudoJet> jets, vector<PseudoJet> 
    basicLeptons[2]->Fill(met,weight);
    double hadtop[10]={hadt.m(),hadt.pt(),hadt.eta(),hadt.phi(),
                       hadW.m(),hadW.pt(),hadW.eta(),hadW.phi(),
-                      0,0};// truth,detabb};
+                      truth,detabb};
    for(unsigned i=0;i<10;i++) basicHadtop[i]->Fill(hadtop[i],weight);
-*/
- //cout<<" the hadronic w's are: "<<lept.m()<<" "<<hadt.m()<<" "<<lepW.phi()<<" "<<lepW.pt()<<" "<<lepW.phi()<<endl;
-  double mtop=lept.m(); basicLeptop[0]->Fill(mtop,weight);
+  //cout<<" the hadronic w's are: "<<lept.m()<<" "<<hadt.m()<<" "<<lepW.phi()<<" "<<lepW.pt()<<" "<<lepW.phi()<<endl;
+  /*  double mtop=lept.m(); basicLeptop[0]->Fill(mtop,weight);
   double leptop[13]={170,0,0,0, //lept.m(),lept.pt(),lept.eta(),lept.phi(),
                      90,0,0,0, //lepW.m(),lepW.pt(),lepW.eta(),lepW.phi(),
                      0,0,0,wtransM,ttransM //pnuzerror,truth,mterror,wmt,tmt};
@@ -134,11 +171,10 @@ bool recolept2step(int & bh, int & bl,vector<PseudoJet> jets, vector<PseudoJet> 
                     hadW.m(),hadW.pt(),hadW.eta(),hadW.phi(),
                     truth,0};
   for(unsigned i=0;i<10;i++) basicHadtop[i]->Fill(hadtop[i],weight);
- return true;
-   /////////////////////////////////////////////////////////////
-
+  */
+  return true;
+  /////////////////////////////////////////////////////////////
  } else return false;// recotruth=0;
-
  //basicLeptop[9]->Fill(recotruth,weight);
  //return true;
 }// close recolept
@@ -190,29 +226,91 @@ bool recotlepeq(int & bh, int & bl,vector<PseudoJet> jets, vector<PseudoJet> lep
                    pow(cw+creal(pnuzsol)*(bw+aw*creal(pnuzsol)),2) ); 
      sol.push_back(creal(pnuzsol));
      //cout<<i<<" pz3 "<<creal(pnuzsol)<<" "<< a4[i]<<" "<< (neutrinos.at(0)+plb).m()<<" "<<btrue[i]<<endl;
-   }// close if no imaginary    
-  } //close loop on jets
+    }// close if no imaginary    
+   } //close loop on jets
    // make the neutrino vector 
    int minM = TMath::LocMin(a4.size(), &a4[0]); //cout<<minM<<endl;
    double enu = sqrt(pow(neutrinos.at(0).px(),2)+pow(neutrinos.at(0).py(),2)+pow(sol[minM],2));
    double pxnu=neutrinos.at(0).px(),pynu=neutrinos.at(0).py();
-   PseudoJet lepW = leptons.at(0)+ fastjet::PseudoJet(pxnu,pynu,sol[minM],enu);
-   PseudoJet lept = jets[minM] + lepW;  
-   double pnuzerror=(neutrinos.at(0)+leptons.at(0)).m()-lepW.m();
-   int bll; for(unsigned int i=0; i< jsize; i++) if(btrue[i]==5) bll=i;
-   double mterror=(neutrinos.at(0)+leptons.at(0)+jets[bll]).m()-lept.m();
    // the solution jet is the minimum 
-   int truth; if(btrue[minM]==5) truth=1; else truth=0;
+   PseudoJet lepW = leptons.at(0)+ fastjet::PseudoJet(pxnu,pynu,sol[minM],enu);
+   PseudoJet lept = jets[minM] + lepW; bl = minM;  
+   double pnuzerror=(neutrinos.at(0)+leptons.at(0)).m()-lepW.m();
+   int bll; for(unsigned int i=0; i< jsize; i++) if(btrue[i]==5) bll=i; // to know true mass
+   double mterror=(neutrinos.at(0)+leptons.at(0)+jets[bll]).m()-lept.m();
+   //////////////////////////////////////////////////////////////
+   PseudoJet lepWtransv = leptons.at(0) + jets.at(bl);
+   double wtransM = // w transverse mass
+    sqrt(
+      2*neutrinos.at(0).e()*leptons.at(0).e()-
+      2*(neutrinos.at(0).px()*leptons.at(0).px()+neutrinos.at(0).py()*leptons.at(0).py())); // fix neutrino
+   double ttransM = // t transverse mass
+    sqrt(
+      2*neutrinos.at(0).e()*lepWtransv.e()-
+      2*(neutrinos.at(0).px()*lepWtransv.px()+neutrinos.at(0).py()*lepWtransv.py())); // fix neutrino
+   /////////////////////////////////////////////////////////////////// 
+   // find hadronic w -- closest hadronic mass -- but not the hadronic top
+   vector<int> j1,j2; vector<double> a3; int minMw;
+   for(unsigned int nj1=0; nj1< jsize; nj1++) 
+     for(unsigned int nj2=nj1+1; nj2< jsize; nj2++) 
+      if (nj1!=nj2 && nj1!=bl && nj2!=bl )
+       //if(btag[nj1]==0 && btag[nj2]==0)
+       {  //std::cout<<nj1<<" "<<nj2<<" "<<bl<<" jsize "<<jsize<<std::endl; 
+	   double invmassA =  (jets.at(nj1)+jets.at(nj2)).m();
+	   a3.push_back((invmassA-wmass)*(invmassA-wmass)); 
+	   j1.push_back(nj1); j2.push_back(nj2); 
+           // we also what to keep the nj...           
+   } // loop on jets  
+   minMw = TMath::LocMin(a3.size(), &a3[0]);
+   PseudoJet hadW = jets[j1[minMw]] + jets[j2[minMw]];
+   ////////////////////////////////////////////////////////////
+   // do the hadronic top with the hardest pt jet
+   vector<double> ptj; vector<int> nptj;
+   for(unsigned int nj1=0; nj1< jsize; nj1++) 
+     if (nj1!=j1[minMw] && nj1!=j2[minMw] && nj1!=bl)
+      { ptj.push_back(jets.at(nj1).pt()); nptj.push_back(nj1);  }
+   int maxPt = TMath::LocMax(ptj.size(), &ptj[0]); 
+   PseudoJet hadt = hadW + jets.at(nptj[maxPt]);
+   ////////////////////////////////////////////////////////////////////
+   // test truth 
+   int truth=0; 
+   if(btrue[j1[minMw]]==0 && btrue[j2[minMw]]==0  && btrue[bl]==-5 && btrue[nptj[maxPt]]==5 ) truth=1; else truth=0; 
+   //cout<<j1[minMw]<<" "<<j2[minMw]<<" "<<bl<<" "<<nptj[maxPt]<<" "<<endl; 
+   ///////////////////////////////////////////////////////////////////
+   double detabb  = abs(jets[nptj[maxPt]].eta() - jets[bl].eta());
+   /////////////////////////////////////////////////////////////////// 
+   // fill diagrams
    double leptop[13]={lept.m(),lept.pt(),lept.eta(),lept.phi(),
                      lepW.m(),lepW.pt(),lepW.eta(),lepW.phi(),
-                     pnuzerror,truth,mterror,0};
+                     pnuzerror,0,0,wtransM,ttransM}; // pnuzerror,truth,mterror,wmt,tmt
    for(unsigned i=0;i<13;i++) basicLeptop[i]->Fill(leptop[i],weight);
+   basicLeptons[0]->Fill(leptons[0].pt(),weight);
+   basicLeptons[1]->Fill(leptons[0].eta(),weight);
+   basicLeptons[2]->Fill(met,weight);
+   double hadtop[10]={hadt.m(),hadt.pt(),hadt.eta(),hadt.phi(),
+                      hadW.m(),hadW.pt(),hadW.eta(),hadW.phi(),
+                      truth,detabb};
+   for(unsigned i=0;i<10;i++) basicHadtop[i]->Fill(hadtop[i],weight);
 return true;
 } // close recotlepeq
 /////////////////////////////////////////////////////////////////
 bool recohadt(int & bh, int & bl, vector<PseudoJet> jets, vector<PseudoJet> leptons,vector<PseudoJet> neutrinos, vector<int> btag, vector<int> btrue, double met){
-  // find the three jets that are hadronic t
+  int blll=-1,bhhh=-1; vector<int> wj;
   unsigned int jsize = jets.size();
+  for(unsigned int nj1=0; nj1< jsize; nj1++) // only works at parton level
+    if(btrue[nj1]==-5) bhhh=nj1; else if(btrue[nj1]==5) blll=nj1; else wj.push_back(nj1);   
+  //cout<<wj.size()<<" "<<jsize<<" "<<bl<<" "<<bh<<" "<<endl; 
+  if(bhhh!=-1 && blll!=-1 && wj.size()>1){
+    //   cout<<jsize<<endl;
+    //cout<<wj[0]<<" "<<wj[1]<<" "<<blll<<" "<<bhhh<<" "<<endl;  
+    PseudoJet lepTtrue = leptons.at(0) + neutrinos.at(0) + jets.at(blll);
+    PseudoJet hadTtrue = jets.at(wj[0]) + jets.at(wj[1]) + jets.at(bhhh);
+    leptop->Fill(lepTtrue.m(),weight);
+    hadtop->Fill(hadTtrue.m(),weight);
+  }
+ /////////////////////////////////////////////////////////////
+  // find the three jets that are hadronic t
+  //unsigned int jsize = jets.size();
   vector<int> j1,j2,j3; vector<double> a3; int minM;
   for(unsigned int nj1=0; nj1< jsize; nj1++) 
    for(unsigned int nj2=0; nj2< jsize; nj2++) if (nj2!=nj1)
@@ -235,15 +333,80 @@ bool recohadt(int & bh, int & bl, vector<PseudoJet> jets, vector<PseudoJet> lept
      { ptj.push_back(jets.at(nj1).pt()); nptj.push_back(nj1);  }
   int maxPt = TMath::LocMax(ptj.size(), &ptj[0]);
   PseudoJet lepWtransv = leptons.at(0) + jets.at(nptj[maxPt]);
+  //////////////////////////////////////////////////////////////////
+  // chose the neutrino solving to mw2
+ double wt = (leptons.at(0).px()*neutrinos.at(0).px()) + (leptons.at(0).py()*neutrinos.at(0).py());
+ double mu = (pow(wmass,2)/2 + wt);
+ double aw = (pow(leptons.at(0).pz(),2)-pow(leptons.at(0).e(),2));
+ double bw = 2*mu*leptons.at(0).pz();
+ double cw = pow(mu,2)-pow(leptons.at(0).e(),2)*pow(met,2);
+ double discriminant = pow(bw,2) - 4*aw*cw ; 
+ double pnuzerror,pnuz=-10;//,recowm,recowpt,recoweta,recowphi;  
+ PseudoJet lepW; int recotruth=0; double mterror, recoWmass=-10, recotopmass=-10;
+ if(discriminant>=0){
+   //recotruth=1; 
+   double pznu1 = (-bw - sqrt(discriminant))/(2*aw);
+   double pznu2 = (-bw + sqrt(discriminant))/(2*aw);
+   //cout<<"pz1 "<<pznu1 << " pz2 " <<pznu2 <<" pz "<<neutrinos.at(0).pz()<<" pzl "<<leptons.at(0).pz()<<endl;
+   //cout<<"dumb "<< (neutrinos.at(0)+leptons.at(0)).m() << " calculated " <<
+   //sqrt(pow(leptons.at(0).e()+neutrinos.at(0).e(),2)-wt-pow(leptons.at(0).pz()+neutrinos.at(0).pz(),2))
+   //  <<endl;
+   pnuz=TMath::Min(pznu1,pznu2); 
+   double enu = sqrt(pow(neutrinos.at(0).px(),2)+pow(neutrinos.at(0).py(),2)+pow(pnuz,2));
+   double pxnu=neutrinos.at(0).px(),pynu=neutrinos.at(0).py();
+   lepW = leptons.at(0)+ fastjet::PseudoJet(pxnu,pynu,pnuz,enu);
+   recoWmass=lepW.m(); //cout<<recoWmass<<endl;
+   recotopmass = (lepW+ jets.at(nptj[maxPt])).m();
+   mterror=(neutrinos.at(0)+leptons.at(0)+jets.at(nptj[maxPt])).m()-recotopmass;
+   pnuzerror=(neutrinos.at(0)+leptons.at(0)).m()-lepW.m();
+   if (abs(pnuz-neutrinos.at(0).pz())<0.1) recotruth=1;
+   } 
   ////////////////////////////////////////////////////////////////////
-  double wtransM = // w transverse mass
-   sqrt(
-      2*neutrinos.at(0).e()*leptons.at(0).e()-
-      2*(neutrinos.at(0).px()*leptons.at(0).px()+neutrinos.at(0).py()*leptons.at(0).py())); // fix neutrino
-  double ttransM = // t transverse mass
-   sqrt(
-      2*neutrinos.at(0).e()*lepWtransv.e()-
-      2*(neutrinos.at(0).px()*lepWtransv.px()+neutrinos.at(0).py()*lepWtransv.py())); // fix neutrino
+  // define tranverse masses
+  double wwmass = pow(neutrinos.at(0).e()+leptons.at(0).e(),2)
+                - pow(neutrinos.at(0).px()+leptons.at(0).px(),2)
+                - pow(neutrinos.at(0).py()+leptons.at(0).py(),2)
+                - pow(neutrinos.at(0).pz()+leptons.at(0).pz(),2);
+  double wtransE = sqrt(pow(wmass,2) + pow(neutrinos.at(0).px()+leptons.at(0).px(),2)
+                + pow(neutrinos.at(0).py()+leptons.at(0).py(),2));// w transverse mass                   
+  double wtransM = pow(
+      pow(neutrinos.at(0).pt()+leptons.at(0).pt(),2)-
+      pow(neutrinos.at(0).px()+leptons.at(0).px(),2)-pow(neutrinos.at(0).py()+leptons.at(0).py(),2)
+      ,0.5); // fix neutrino
+  //cout<<neutrinos.at(0).pt()<<" "<<leptons.at(0).pt()<<" "<<wtransM<<endl;
+  double btransE = sqrt( pow(bmass,2) +jets.at(nptj[maxPt]).px()*jets.at(nptj[maxPt]).px()+
+                        jets.at(nptj[maxPt]).py()*jets.at(nptj[maxPt]).py());
+  double ttransM = sqrt(pow(wtransE + btransE ,2)-
+                   pow(jets.at(nptj[maxPt]).px()+leptons.at(0).px()+neutrinos.at(0).px(),2)- // fix neutrino
+                   pow(jets.at(nptj[maxPt]).py()+leptons.at(0).py()+neutrinos.at(0).py(),2));
+  ////////////////////////////////////////////////////////////////////
+  // define alternative transverse quantities
+  double lbmass = sqrt( pow(jets.at(nptj[maxPt]).e()+leptons.at(0).e(),2)
+                - pow(jets.at(nptj[maxPt]).px()+leptons.at(0).px(),2)
+                - pow(jets.at(nptj[maxPt]).py()+leptons.at(0).py(),2)
+                - pow(jets.at(nptj[maxPt]).pz()+leptons.at(0).pz(),2));
+  double lbtransE = sqrt(pow(lbmass,2) + pow(jets.at(nptj[maxPt]).px()+leptons.at(0).px(),2)
+                  + pow(jets.at(nptj[maxPt]).py()+leptons.at(0).py(),2));// w transverse mass    
+  double ttransMal = sqrt(pow(lbtransE + neutrinos.at(0).pt(),2)-
+                   pow(jets.at(nptj[maxPt]).px()+leptons.at(0).px()+neutrinos.at(0).px(),2)- // fix neutrino
+                   pow(jets.at(nptj[maxPt]).py()+leptons.at(0).py()+neutrinos.at(0).py(),2));
+  ////////////////////////////////////////////////////////////////////
+  // define razor variables
+  //cout<<wtransM<<" "<<btransE<<" "<<ttransM<<endl;
+  //cout<<ttransM<<endl;
+  double mrazor = sqrt(
+         pow( 
+             sqrt(pow(leptons.at(0).px(),2)+pow(leptons.at(0).py(),2)+pow(leptons.at(0).pz(),2)) +
+             sqrt(pow(jets.at(nptj[maxPt]).px(),2)+pow(jets.at(nptj[maxPt]).py(),2)+pow(jets.at(nptj[maxPt]).pz(),2))
+            ,2)-
+         pow(jets.at(nptj[maxPt]).pz()+leptons.at(0).pz(),2)
+         );
+  double mrazortrans = sqrt(
+         neutrinos.at(0).pt()*(jets.at(nptj[maxPt]).pt()+leptons.at(0).pt())-
+         neutrinos.at(0).px()*(jets.at(nptj[maxPt]).px()+leptons.at(0).px())-
+         neutrinos.at(0).py()*(jets.at(nptj[maxPt]).py()+leptons.at(0).py()) 
+         )*sqrt(0.5);
+  double ratiorazor = mrazortrans/mrazor; 
   /////////////////////////////////////////////////////////////////// 
   // test trueth
   int truth;
@@ -251,23 +414,23 @@ bool recohadt(int & bh, int & bl, vector<PseudoJet> jets, vector<PseudoJet> lept
   //std::cout<<j1[minM]<<" "<<j2[minM]<<" "<<j3[minM]<<" "<<nptj[maxPt]<<" "<<std::endl; 
   //std::cout<<btrue[j1[minM]]<<" "<<btrue[j2[minM]]<<" "<<btrue[j3[minM]]<<" "<<btrue[nptj[maxPt]]<<" "<<std::endl; 
   ///////////////////////////////////////////////////////////////////
-  // the two b's --- the last jet
-  //vector<int> jrest;
-  //unsigned wjet1=j1[minM], wjet2=j2[minM]; 
-  //for(unsigned int nj1=0; nj1< jsize; nj1++) 
-  //  if(nj1!=wjet1 && nj1!=wjet2 && nj1!=j3[minM]) jrest.push_back(nj1); 
-  //if(jrest.size()>1) { // see later how to chose
-  //  bl=jrest[0];
-  //} else bl=jrest[0]; // no btag requirement
   double detabb  = abs(jets[nptj[maxPt]].eta() - jets[j3[minM]].eta());
-  ///////////////////////////////////////////////// 
+  double detalb  = abs(leptons.at(0).eta() - jets[j3[minM]].eta());
+  /////////////////////////////////////////////////////////
   // fill diagrams
   /////////////////////////////////////////////////////////
-  double leptop[13]={170,0,0,0, //lept.m(),lept.pt(),lept.eta(),lept.phi(),
-                     90,0,0,0, //lepW.m(),lepW.pt(),lepW.eta(),lepW.phi(),
-                     0,0,0,wtransM,ttransM //pnuzerror,truth,mterror,wmt,tmt};
+  double leptop[19]={recotopmass,0,0,0, //lept.m(),lept.pt(),lept.eta(),lept.phi(),
+                     recoWmass,0,0,0, //lepW.m(),lepW.pt(),lepW.eta(),lepW.phi(),
+                     pnuzerror,recotruth,0,wtransM,ttransM,detalb,mrazor,mrazortrans, ratiorazor,ttransMal,lbmass
+                     //pnuzerror,truth,mterror,wmt,tmt};
                      };
-  for(unsigned i=0;i<13;i++) basicLeptop[i]->Fill(leptop[i],weight);
+  if(1>0
+//      && ttransMal >200
+//     && mrazor>150 
+       //&& ratiorazor<0.8 
+       //&& wtransM>80
+     ){ 
+  for(unsigned i=0;i<19;i++) basicLeptop[i]->Fill(leptop[i],weight);
   //
   basicLeptons[0]->Fill(leptons[0].pt(),weight);
   basicLeptons[1]->Fill(leptons[0].eta(),weight);
@@ -276,6 +439,7 @@ bool recohadt(int & bh, int & bl, vector<PseudoJet> jets, vector<PseudoJet> lept
                     hadW.m(),hadW.pt(),hadW.eta(),hadW.phi(),
                     truth,detabb};
   for(unsigned i=0;i<10;i++) basicHadtop[i]->Fill(hadtop[i],weight);
+  }
   // reco the lep top
   return true;//} else return false;
 }// close top reco
@@ -374,32 +538,77 @@ void isbtagged(vector<PseudoJet> jets, vector<int> & btag, vector<int> & bmistag
 } // close isbtagged
 /////////////////////////////////////////////////////////////////////////
 // save the histos
-int save_hist(int nmass){
+int save_hist(int isample,int reco,int sample){
   const char* Mass;
-  Mass = Form("Control_shower_%d_lep.root",nmass);
+  Mass = Form("Control_reco_%d_place_%d_.root",reco,sample);
   TFile f1(Mass, "recreate");
   f1.cd();
   Njets_passing_kLooseID->Write();
   btagselected->Write();
+  leptop->Write();
+  hadtop->Write();
   basicLeptons[0]->Write();
   basicLeptons[1]->Write();
   basicLeptons[2]->Write();
   for(unsigned i=0;i<10;i++) basicHadtop[i]->Write();
-  for(unsigned i=0;i<13;i++) basicLeptop[i]->Write();
+  for(unsigned i=0;i<19;i++) basicLeptop[i]->Write();
   f1.Close();
   //
   Njets_passing_kLooseID->Reset();
   btagselected->Reset();
-  basicLeptons[0]->Reset();
-  basicLeptons[1]->Reset();
-  basicLeptons[2]->Reset();
-  for(unsigned i=0;i<10;i++) basicHadtop[i]->Reset();
-  for(unsigned i=0;i<13;i++) basicLeptop[i]->Reset();
+  leptop->Reset();
+  hadtop->Reset();
+  basicLeptons.clear();
+  basicHadtop.clear();
+  basicLeptop.clear();
+//  basicLeptons[0]->Reset();
+//  basicLeptons[1]->Reset();
+//  basicLeptons[2]->Reset();
+//  for(unsigned i=0;i<10;i++) basicHadtop[i]->Reset();
+//  for(unsigned i=0;i<13;i++) basicLeptop[i]->Reset();
   return 0;
 }
 /////////////////////////////////////////////////////////////////////////
 int decla(int mass){
+
+delete gDirectory->FindObject("leptop1");
+delete gDirectory->FindObject("hadtop1");
+delete gDirectory->FindObject("njets_passing_kLooseID_ct4");
+delete gDirectory->FindObject("btagselected");
+delete gDirectory->FindObject("E1histpt");
+delete gDirectory->FindObject("E1histeta");
+delete gDirectory->FindObject("MetMass_ct4");
+delete gDirectory->FindObject("H1hist");
+delete gDirectory->FindObject("H1histpt");
+delete gDirectory->FindObject("H1histeta");
+delete gDirectory->FindObject("H1histphi");
+delete gDirectory->FindObject("HW1hist");
+delete gDirectory->FindObject("HW1histpt");
+delete gDirectory->FindObject("HW1histeta");
+delete gDirectory->FindObject("HW1histphi");
+delete gDirectory->FindObject("recotruth");
+delete gDirectory->FindObject("detabb");
+delete gDirectory->FindObject("H1LepThist");
+delete gDirectory->FindObject("H1LepThistpt");
+delete gDirectory->FindObject("H1LepThisteta");
+delete gDirectory->FindObject("H1LepThistphi");
+delete gDirectory->FindObject("HW1LepThist");
+delete gDirectory->FindObject("HW1LepThistpt");
+delete gDirectory->FindObject("HW1LepThisteta");
+delete gDirectory->FindObject("HW1LepThistphi");
+delete gDirectory->FindObject("pnuzerror");
+delete gDirectory->FindObject("recotruthlept");
+delete gDirectory->FindObject("mterror");
+delete gDirectory->FindObject("wmt");
+delete gDirectory->FindObject("tmt");
+delete gDirectory->FindObject("detalb");
+delete gDirectory->FindObject("mraz");
+delete gDirectory->FindObject("mrazt");
+delete gDirectory->FindObject("razratio");
+
+
   const char* label="without btag im reco";
+
 	Njets_passing_kLooseID = new TH1D("njets_passing_kLooseID_ct4",  
 		label, 
 		13, -0.5, 12.5);
@@ -412,7 +621,19 @@ int decla(int mass){
 	btagselected->GetYaxis()->SetTitle("");
 	btagselected->GetXaxis()->SetTitle("b-tagable b's on selected events");
 
-  // gen 
+	leptop = new TH1D("leptop1",  
+		label, 
+		100, 100, 250);
+	leptop->GetYaxis()->SetTitle("");
+	leptop->GetXaxis()->SetTitle("true M lep top"); 
+
+	hadtop = new TH1D("hadtop1",  
+		label, 
+		100, 100, 250);
+	hadtop->GetYaxis()->SetTitle("");
+	hadtop->GetXaxis()->SetTitle("true M had top"); 
+
+        // gen 
 	/////////////////////////////////////////////////////////////////////////////
 	// for leptons
 	TH1D *E1histpt = new TH1D("E1histpt",  
@@ -431,21 +652,21 @@ int decla(int mass){
 
 	TH1D *MetMass = new TH1D("MetMass_ct4",  
 		label, 
-		50, 0, 750);
+		50, 0, 300);
 	MetMass->GetXaxis()->SetTitle("MET (GeV)");
 	basicLeptons.push_back (MetMass);
         ///////////////////////////////////////////////////////////////////////////
         // for hadronic tops
 	TH1D *H1hist = new TH1D("H1hist",  
 		label, 
-		80, 160, 190);
+		100, 100, 250);
 	H1hist->GetYaxis()->SetTitle("Events/ 2 GeV");
 	H1hist->GetXaxis()->SetTitle("mass t_{had} (GeV)");
 	basicHadtop.push_back (H1hist); 
 
 	TH1D *H1histpt = new TH1D("H1histpt",  
 		label, 
-		20, 0, 300);
+		100, 0, 1000);
 	H1histpt->GetYaxis()->SetTitle("Events/ 2 GeV");
 	H1histpt->GetXaxis()->SetTitle("t_{had} P_T (GeV)");
 	basicHadtop.push_back (H1histpt); 
@@ -473,7 +694,7 @@ int decla(int mass){
 
 	TH1D *HW1histpt = new TH1D("HW1histpt",  
 		label, 
-		20, 0, 300);
+		100, 0, 600);
 	HW1histpt->GetYaxis()->SetTitle("Events/ 2 GeV");
 	HW1histpt->GetXaxis()->SetTitle("W_{had} P_T (GeV)");
 	basicHadtop.push_back (HW1histpt); 
@@ -509,7 +730,7 @@ int decla(int mass){
         // for leptonic tops
 	TH1D *H1LepThist = new TH1D("H1LepThist",  
 		label, 
-		80, 160, 190);
+		250, 100, 400);
 	H1LepThist->GetYaxis()->SetTitle("Events/ 2 GeV");
 	H1LepThist->GetXaxis()->SetTitle("mass t_{lep} (GeV)");
 	basicLeptop.push_back (H1LepThist); 
@@ -537,7 +758,7 @@ int decla(int mass){
         // had w
 	TH1D *HW1LepThist = new TH1D("HW1LepThist",  
 		label, 
-		80, 50, 100);
+		100, 80, 81);
 	HW1LepThist->GetYaxis()->SetTitle("Events/ 2 GeV");
 	HW1LepThist->GetXaxis()->SetTitle("mass W_{lep} (GeV)");
 	basicLeptop.push_back (HW1LepThist); 
@@ -546,7 +767,7 @@ int decla(int mass){
 		label, 
 		20, 0, 300);
 	HW1LepThistpt->GetYaxis()->SetTitle("Events/ 2 GeV");
-	HW1LepThistpt->GetXaxis()->SetTitle("W_{lep} P_{T} (GeV)");
+	HW1LepThistpt->GetXaxis()->SetTitle("W_{lep} P_{T} (GeV)"); 
 	basicLeptop.push_back (HW1LepThistpt); 
 
 	TH1D *HW1LepThisteta = new TH1D("HW1LepThisteta",  
@@ -586,26 +807,62 @@ int decla(int mass){
 
 	TH1D *wmt = new TH1D("wmt",  
 		label, 
-		150, 0, 800);
+		75, 0, 150);
 	wmt->GetYaxis()->SetTitle("Events/ 2 GeV");
 	wmt->GetXaxis()->SetTitle("W transverse mass");
 	basicLeptop.push_back (wmt); 
 
 	TH1D *tmt = new TH1D("tmt",  
 		label, 
-		150, 0, 800);
+		100, 100, 300);
 	tmt->GetYaxis()->SetTitle("Events/ 2 GeV");
-	tmt->GetXaxis()->SetTitle("Top transverse mass");
+	tmt->GetXaxis()->SetTitle("Top transverse mass (Wb)");
 	basicLeptop.push_back (tmt); 
 
+	TH1D *detalb = new TH1D("detalb",  
+		label, 
+		30, 0, 6);
+	detalb->GetYaxis()->SetTitle("Events/ 2 GeV");
+	detalb->GetXaxis()->SetTitle("#Delta#eta b l");
+	basicLeptop.push_back (detalb); 
+
+	TH1D *mraz = new TH1D("mraz",  
+		label, 
+		150, 0, 1000);
+	mraz->GetYaxis()->SetTitle("Events/ 2 GeV");
+	mraz->GetXaxis()->SetTitle("MR");
+	basicLeptop.push_back (mraz); 
+
+	TH1D *mrazt = new TH1D("mrazt",  
+		label, 
+		150, 0, 300);
+	mrazt->GetYaxis()->SetTitle("Events/ 2 GeV");
+	mrazt->GetXaxis()->SetTitle("MRt");
+	basicLeptop.push_back (mrazt); 
+
+	TH1D *razratio = new TH1D("razratio",  
+		label, 
+		100, 0, 1);
+	razratio->GetYaxis()->SetTitle("Events/ 2 GeV");
+	razratio->GetXaxis()->SetTitle("MRt/MR");
+	basicLeptop.push_back (razratio); 
+
+	TH1D *tmtal = new TH1D("tmtal",  
+		label, 
+		100, 0, 1000);
+	tmtal->GetYaxis()->SetTitle("Events/ 2 GeV");
+	tmtal->GetXaxis()->SetTitle("top transverse mass (lb - #nu)");
+	basicLeptop.push_back (tmtal); 
+
+	TH1D *mbl = new TH1D("massbl",  
+		label, 
+		100, 0, 1000);
+	mbl->GetYaxis()->SetTitle("Events/ 2 GeV");
+	mbl->GetXaxis()->SetTitle("m_{lb}");
+	basicLeptop.push_back (mbl); 
         ///////////////////////////////////////////////////////////////////////////////////
  return 0;
 }
-
-
-
-
-
 
 
 /*

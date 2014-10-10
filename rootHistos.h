@@ -8,3 +8,5 @@ using namespace std;
   vector<TH1D *> basicLeptop;
   TH1D *Njets_passing_kLooseID;
   TH1D *btagselected;
+  TH1D *leptop;
+  TH1D *hadtop;

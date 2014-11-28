@@ -38,11 +38,13 @@ int main() {
   // input
   vector<string> filename;
   string file, path,data;
-  path="/home/xanda/Documents/ggAnalysis/Parton/code/top_width/";
-  string sample[5] = {"onon","onoff","offon","offoff","wbwb_13tev_100k"};// the last one have 50k
+  path="Mad_cut/";
+  string sample[10] = {"full","OffOffDD","OffOffUU","OffOffDU","OffOffUD",
+                      "OnOn","OnOffU","OnOffD","OffOnU","OffOnD"};// the last one have 50k
+  // Cross-section :   2.515 +- 0.008984 pb
   data = ".lhe.decayed";
-  for(unsigned int isample=4; isample<5;isample++)
-   for(unsigned int type=0; type<6;type++){
+  for(unsigned int isample=0; isample<10;isample++)
+   for(unsigned int type=0; type<1;type++){
   decla(0);
   file = path + sample[isample]+ data;
   //////////////////////////////////
@@ -50,11 +52,11 @@ int main() {
   cout<<"\n\n reading file = "<<file<<endl;
   //return 0;
   in1.open(file.c_str());
-  for(unsigned int ievent=0;ievent<100000;ievent++){ // for each event  // 
+  for(unsigned int ievent=0;ievent<10000;ievent++){ // for each event  // 
      string c;
      in1>>c;
      double Px, Py , Pz, E;
-     int pID;
+     int pID, mother;
      unsigned int nparticles;
      vector<PseudoJet> particles;//jets 
      vector<PseudoJet> neutrinos;
@@ -63,7 +65,7 @@ int main() {
      int nb = 0;
      in1>>nparticles; unsigned int counter=0,countert=0,counterl=0,countern=0;
        for(unsigned int ipart=0;ipart<nparticles;ipart++){ // loop on particles
-          in1 >> pID >> Px >> Py >> Pz >> E ;//>> idup;
+          in1 >> mother >> pID >> Px >> Py >> Pz >> E ;//>> idup;
           if (abs(pID) < 6 || pID==21){  // if a quark/gluon -- neglect hadrons
 		particles.push_back(fastjet::PseudoJet(Px,Py,Pz,E)); 
                 particles.at(counter).set_user_index(pID); 
@@ -89,14 +91,14 @@ int main() {
        // lepton isolation and basic cuts
        bool lepcuts=false, hadtopreco=false, lepwreco=false;
        int count=0; for(unsigned int i = 0; i < njets; i++) if(btag[i]>0)count++;
-       if(counterl==1 && njets>3 // only two jets to reco the hadronic W and make enought balance to reco met 
+       if( counterl==1 && njets>3 // only two jets to reco the hadronic W and make enought balance to reco met 
           //&& count>1
          ){ //cout<<"njets "<<njets<<" nleptons "<<counterl<<" pzl "<< neutrinos.at(0).pz()<<endl;
-         lepcuts=recol(met,jets,leptons,neutrinos); // returned the leptons
-         int true_tops = truetops(jets,leptons,neutrinos,btag,btrue);  
+           lepcuts=recol(met,jets,leptons,neutrinos); // returned the leptons
+           int true_tops = truetops(jets,leptons,neutrinos,btag,btrue);  
               // by now it only works at parton level
-         if(lepcuts && reco == 0 && true_tops==type ) hadtopreco=recohadt(bh,bl,jets,leptons,neutrinos,btag,btrue,met); 
-         if(lepcuts && reco == 1 && true_tops==type ) lepwreco = recolept2step(bh,bl,jets,leptons,neutrinos,btag,btrue,met); 
+           if(lepcuts && reco == 0 ) hadtopreco=recohadt(bh,bl,jets,leptons,neutrinos,btag,btrue,met); // && true_tops==type )
+           if(lepcuts && reco == 1 ) lepwreco = recolept2step(bh,bl,jets,leptons,neutrinos,btag,btrue,met); // && true_tops==type )
          //if(lepcuts && true_tops==type )lepwreco = recotlepeq(bh,bl,jets,leptons,neutrinos,btag,btrue,met);
        }
   } // close for each event

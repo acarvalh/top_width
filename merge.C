@@ -61,20 +61,24 @@ TStyle *defaultStyle = new TStyle("defaultStyle","Default Style");
     defaultStyle->SetPadTickY(1);
     defaultStyle->cd();
 /////////////////////////////////////////////////////
-int nmass = 6;
+int nmass = 10;
 const char* channel[nmass]={
 "Control_reco_0_place_0_.root",  
 "Control_reco_0_place_1_.root",  
 "Control_reco_0_place_2_.root",
 "Control_reco_0_place_3_.root",  
 "Control_reco_0_place_4_.root",  
-"Control_reco_0_place_5_.root"
+"Control_reco_0_place_5_.root",
+"Control_reco_0_place_6_.root",  
+"Control_reco_0_place_7_.root",  
+"Control_reco_0_place_8_.root", 
+"Control_reco_0_place_9_.root"
 };
-const char* lege[nmass]={" hreco hon "," hreco hlow "," hreco hhigh ",
-                         " hreco lon "," hreco llow "," hreco lhigh ",};
-int maxtodo=3; 
-int todo[maxtodo]={3,4,5};//3 ,2 ,1 };//27,28,34, // 0,21,16,13, 9 ,5 ,
-double masses[maxtodo] = {5,4,3};//,
+const char* lege[nmass]={"full","OffOffDD","OffOffUU","OffOffDU","OffOffUD",
+                      "OnOn","OnOffU","OnOffD","OffOnU","OffOnD"};
+int maxtodo=6; 
+int todo[maxtodo]={0,5,1,2,3,4};//,6,7,8,9};//3 ,2 ,1 };//27,28,34, // 0,21,16,13, 9 ,5 ,
+double masses[maxtodo] = {0,1,2,3,4,5};//,6,7,8,9};//,
 //
 TLegend *leg = new TLegend(0.65,0.60,0.99,0.99);
    leg->SetTextSize(0.04146853);
@@ -171,7 +175,7 @@ for(int i=0;i<maxtodo;i++){
  TH1D* plots[i][33] = (TH1D* ) file[i]->Get("tmtal;1");
  TH1D* plots[i][34] = (TH1D* ) file[i]->Get("massbl;1");
 } 
-const int sigcolor[nmass]={1,2,3,4,5,6 };
+const int sigcolor[nmass]={1,28,90,8,93,6,7,8,9,50}; // 1,2,3,4,5,6 };
 for(int k=0;k<nplots;k++) for(int l=0;l<maxtodo;l++){
 plots[l][k]->SetLineColor(sigcolor[todo[l]]);
 plots[l][k]->SetLineStyle(0);
@@ -212,6 +216,8 @@ PT_HAT->SetLogy(1);
         if(i==0) {TLine li(4,0.00001,4,0.25); li->Draw("same");}
         if(i==5) {TLine li3(173,0.0002,173,0.6); li3->Draw("same");}
         if(i==9) {TLine li2(80,0.00001,80,0.70); li2->Draw("same");}
+        if(i==25 || i==26) {TLine li3(203,0.2,203,10000); li3->Draw("same");}
+        if(i==25 || i==26) {TLine li2(143,0.2,143,10000); li2->Draw("same");}
 	leg->Draw("same");
 //	if( i==1 || i==5) {
  //          PT_HAT->SetLogy(1); 

@@ -52,7 +52,7 @@ int truetops(vector<PseudoJet> jets, vector<PseudoJet> leptons,vector<PseudoJet>
   }
   //return 0;
   return sample;
-} // close truetops
+} // close truetops 
 /////////////////////////////////////////////////////////////////
 bool recolept2step(int & bh, int & bl,vector<PseudoJet> jets, vector<PseudoJet> leptons,vector<PseudoJet> neutrinos, vector<int> btag, vector<int> btrue, double met){
  // I did not reco the hadronic --- do not know which b to take
@@ -216,9 +216,10 @@ bool recotlepeq(int & bh, int & bl,vector<PseudoJet> jets, vector<PseudoJet> lep
               108*pow(at,2)*pow(aw,2)*bt*ct-108*pow(aw,4)*bt*ct+108*pow(at,3)*aw*bw*ct+
               108*at*pow(aw,3)*bw*ct+108*pow(at,3)*aw*bt*cw+108*at*pow(aw,3)*bt*cw-108*pow(at,4)*bw*cw-
               108*pow(at,2)*pow(aw,2)*bw*cw;
-   double complex det = Y + csqrt(cpow(Y,2) + 4*cpow(X,3));
+   //double complex det = Y + csqrt(cpow(Y,2) + 4*cpow(X,3));
+   double det = 0;
    double AA = X/(3*pow(2.,0.666667)*(pow(at,2) + pow(aw,2)));
-   double complex pnuzsol =-(at*bt + aw*bw)/(2*(pow(at,2) + pow(aw,2))) 
+   /*double complex pnuzsol =-(at*bt + aw*bw)/(2*(pow(at,2) + pow(aw,2))) 
                            -cpow(det,-0.333333)*AA
                            +cpow(det,0.333333)/(6*pow(2.,0.333333)*(pow(at,2) + pow(aw,2)));
    if(abs(cimag(pnuzsol))<0.1){ 
@@ -226,7 +227,7 @@ bool recotlepeq(int & bh, int & bl,vector<PseudoJet> jets, vector<PseudoJet> lep
                    pow(cw+creal(pnuzsol)*(bw+aw*creal(pnuzsol)),2) ); 
      sol.push_back(creal(pnuzsol));
      //cout<<i<<" pz3 "<<creal(pnuzsol)<<" "<< a4[i]<<" "<< (neutrinos.at(0)+plb).m()<<" "<<btrue[i]<<endl;
-    }// close if no imaginary    
+    }// close if no imaginary    */
    } //close loop on jets
    // make the neutrino vector 
    int minM = TMath::LocMin(a4.size(), &a4[0]); //cout<<minM<<endl;
@@ -298,10 +299,10 @@ bool recohadt(int & bh, int & bl, vector<PseudoJet> jets, vector<PseudoJet> lept
   int blll=-1,bhhh=-1; vector<int> wj;
   unsigned int jsize = jets.size();
   for(unsigned int nj1=0; nj1< jsize; nj1++) // only works at parton level
-    if(btrue[nj1]==-5) bhhh=nj1; else if(btrue[nj1]==5) blll=nj1; else wj.push_back(nj1);   
-  //cout<<wj.size()<<" "<<jsize<<" "<<bl<<" "<<bh<<" "<<endl; 
+    if(btrue[nj1]==5) bhhh=nj1; else if(btrue[nj1]==-5) blll=nj1; else wj.push_back(nj1);   
+  //cout<<wj.size()<<" "<<jsize<<" "<<blll<<" "<<bhhh<<" "<<endl;  
   if(bhhh!=-1 && blll!=-1 && wj.size()>1){
-    //   cout<<jsize<<endl;
+    //  cout<<jsize<<endl;
     //cout<<wj[0]<<" "<<wj[1]<<" "<<blll<<" "<<bhhh<<" "<<endl;  
     PseudoJet lepTtrue = leptons.at(0) + neutrinos.at(0) + jets.at(blll);
     PseudoJet hadTtrue = jets.at(wj[0]) + jets.at(wj[1]) + jets.at(bhhh);
@@ -540,7 +541,7 @@ void isbtagged(vector<PseudoJet> jets, vector<int> & btag, vector<int> & bmistag
 // save the histos
 int save_hist(int isample,int reco,int sample){
   const char* Mass;
-  Mass = Form("Control_reco_%d_place_%d_.root",reco,sample);
+  Mass = Form("Control_reco_%d_place_%d_.root",reco,isample); cout<<isample<<endl;
   TFile f1(Mass, "recreate");
   f1.cd();
   Njets_passing_kLooseID->Write();
@@ -623,13 +624,13 @@ delete gDirectory->FindObject("razratio");
 
 	leptop = new TH1D("leptop1",  
 		label, 
-		100, 100, 250);
+		70, 0, 1000);
 	leptop->GetYaxis()->SetTitle("");
 	leptop->GetXaxis()->SetTitle("true M lep top"); 
 
 	hadtop = new TH1D("hadtop1",  
 		label, 
-		100, 100, 250);
+		70, 0, 1000);
 	hadtop->GetYaxis()->SetTitle("");
 	hadtop->GetXaxis()->SetTitle("true M had top"); 
 
@@ -659,7 +660,7 @@ delete gDirectory->FindObject("razratio");
         // for hadronic tops
 	TH1D *H1hist = new TH1D("H1hist",  
 		label, 
-		100, 100, 250);
+		70, 0, 1000);
 	H1hist->GetYaxis()->SetTitle("Events/ 2 GeV");
 	H1hist->GetXaxis()->SetTitle("mass t_{had} (GeV)");
 	basicHadtop.push_back (H1hist); 
@@ -730,7 +731,7 @@ delete gDirectory->FindObject("razratio");
         // for leptonic tops
 	TH1D *H1LepThist = new TH1D("H1LepThist",  
 		label, 
-		250, 100, 400);
+		70, 0, 1000);
 	H1LepThist->GetYaxis()->SetTitle("Events/ 2 GeV");
 	H1LepThist->GetXaxis()->SetTitle("mass t_{lep} (GeV)");
 	basicLeptop.push_back (H1LepThist); 

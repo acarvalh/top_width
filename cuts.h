@@ -1,22 +1,31 @@
 /////////////////////////////////
 // cuts
-double const  weight =1.;///10000;//0.001;//
+double weight =1.;///10000;//0.001;//
 double Mjj =0;//400; 
 double PTjj = 0;//400; 
 double DeltayVBF = 0;//3;
 double DeltaRVBF = 0;//3;
 bool shower=true;
 // To be applied only to hadron level events
-double const jet_ptmin=0.0; // for jet reconstruction
-double const rapmax=8.0; // for jet reconstruction
+double const jet_ptmin=0.0; // parton for jet reconstruction
+double const jet_ptminfinal=0.0; // in final jet reconstruction
+double const rapmax=12.0; // for jet reconstruction
+//
+double const genmasshad=2000; // genmass
+double const genmasshadmin=0; // genmass
+//
+double const genmasslep=2000; // genmass
+double const genmasslepmin=0; // genmass
+//
 double const jet_ptminvbf=0.0; // We cut on all jets below 50 GeV
 double const jet1_ptminvbf=0.0; // We cut on all jets below 50 GeV
 double const jet2_ptminvbf=0.0; // We cut on all jets below 50 Ge
-double const bjetpt = 0;
-double const etab = 7;
-double const etaj=8;
+double const bjetpt = 30.0; // the gen-level cut does not accept mistag
+double const etab = 12.5;
+double const etal = 12.5;
+double const etaj=15;
 double const higgs_mass = 125.0;
-int const cat =0; // minimum number of btag
+int const cat =2; // minimum number of btag
 double const RR =0.01;
 ////////////////////////////////////////
 // weights b-tag
@@ -43,14 +52,16 @@ int const n_subjet =3;
 double const wmass = 80.4;
 double const bmass = 4.7;
 double const tmass = 173.0;
-double const ptlepton = 0.0;
-double const lepiso = 0.001;
+double const ptlepton = 00.;
+double const lepiso = 0.0;
 double const MeeMax = 30000.0;
 double const MetMin = 0.0;
+double const  wbtransmassMax = 3000;
+double const  wbtransmassMin = 0;
 
 /*
-PYTHIA Abort from Pythia::next: reached end of Les Houches Events File  
-
+ PYTHIA Abort from Pythia::next: reached end of Les Houches Events File  
+ 
  *-------  PYTHIA Event and Cross Section Statistics  -------------------------------------------------------------*
  |                                                                                                                 |
  | Subprocess                                    Code |            Number of events       |      sigma +- delta    |
@@ -64,7 +75,7 @@ PYTHIA Abort from Pythia::next: reached end of Les Houches Events File
  | sum                                                |      100000     100000     100000 |   4.481e-08  0.000e+00 |
  |                                                                                                                 |
  *-------  End PYTHIA Event and Cross Section Statistics ----------------------------------------------------------*
-
+ 
  *-------  PYTHIA Error and Warning Messages Statistics  ----------------------------------------------------------* 
  |                                                                                                                 | 
  |  times   message                                                                                                | 
@@ -87,5 +98,5 @@ PYTHIA Abort from Pythia::next: reached end of Les Houches Events File
  |    442   Warning in TimeShower::findMEcorr: ME weight above PS one                                              | 
  |                                                                                                                 | 
  *-------  End PYTHIA Error and Warning Messages Statistics  ------------------------------------------------------* 
-
-*/
+ 
+ */

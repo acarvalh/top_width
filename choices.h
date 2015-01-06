@@ -1,6 +1,6 @@
 // inputs
 // Analysis
-bool fourb=true;
+bool semilep=false;
 bool resonant=true, spin2=true;
 bool bkg = false;
 //

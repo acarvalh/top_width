@@ -1,4 +1,4 @@
-// Test function //
+// Test function
 void hello();
 //////////////////////////////////////////////////////////
 // histos
@@ -14,9 +14,9 @@ int recol(vector<PseudoJet> jets,vector<PseudoJet> leptons,vector<PseudoJet> neu
 bool recohadt(int & bh, int & bl, vector<PseudoJet> jets,vector<PseudoJet> leptons,vector<PseudoJet> neutrinos, 
               vector<int> btag, vector<int> btrue, double met);
 bool recolept2step(int & bh, int & bl,vector<PseudoJet> jets, vector<PseudoJet> leptons,vector<PseudoJet> neutrinos, 
-              vector<int> btag, vector<int> btrue, double met);
+                   vector<int> btag, vector<int> btrue, double met);
 bool recotlepeq(int & bh, int & bl,vector<PseudoJet> jets, vector<PseudoJet> leptons,vector<PseudoJet> neutrinos, 
-              vector<int> btag, vector<int> btrue, double met);
+                vector<int> btag, vector<int> btrue, double met);
 
 bool fullylep(int & bh, int & bl, vector<PseudoJet> jets,vector<PseudoJet> leptons,vector<PseudoJet> neutrinos, 
-              vector<int> btag, vector<int> btrue, double met);
+              vector<int> btag, vector<int> btrue, double met,int);

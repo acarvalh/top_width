@@ -1,0 +1,6 @@
+numbering of particles based on:
+
+define bb =  b b~
+define ww = w+ w-
+generate p p > ww ww bb bb , w+ > j j , w- > l- vl~
+generate p p > ww ww bb bb , w+ > l+ vl , w- > l- vl~

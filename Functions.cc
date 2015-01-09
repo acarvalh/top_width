@@ -54,9 +54,9 @@ int truetops(vector<PseudoJet> jets, vector<PseudoJet> leptons,vector<PseudoJet>
     return sample;
 } // close truetops 
 /////////////////////////////////////////////////////////////////
-bool fullylep(int & bh, int & bl,vector<PseudoJet> jets, vector<PseudoJet> leptons,vector<PseudoJet> neutrinos, vector<int> btag, vector<int> btrue, double met, int ifolder){
+bool fullylep(int & bh, int & bl,vector<PseudoJet> jets, vector<PseudoJet> leptons,vector<PseudoJet> neutrinos, vector<int> btag, vector<int> btrue, double met, double weight, double cut, int type){
     ///////////////////////////////////////////////////////////////////
-    // gen level info
+    // gen level info // had == plus
     int blll=-1, bhhh=-1, lep1=-1, lep2=-1, nu1=-1, nu2=-1;
     unsigned int jsize = jets.size();
     for(unsigned int nj1=0; nj1< jsize; nj1++) if(btrue[nj1]==5) bhhh=nj1; else if(btrue[nj1]==-5) blll=nj1; 
@@ -72,7 +72,6 @@ bool fullylep(int & bh, int & bl,vector<PseudoJet> jets, vector<PseudoJet> lepto
         lepTtrue = leptons.at(lep1) + neutrinos.at(nu2) + jets.at(blll);
         hadTtrue = leptons.at(lep2) + neutrinos.at(nu1) + jets.at(bhhh);
         //
-        counttruth==1; 
         //if(ifolder==0) counttruth==1; // full
         //else if(hadTtrue.m() < genmasshad && hadTtrue.m() > genmasshadmin && lepTtrue.m() < genmasslep && lepTtrue.m() > genmasslepmin) counttruth=1; // onon
         //else if(ifolder==2 && hadTtrue.m() < genmass && lepTtrue.m() > genmass) counttruth=1; // onoff
@@ -81,8 +80,20 @@ bool fullylep(int & bh, int & bl,vector<PseudoJet> jets, vector<PseudoJet> lepto
         
         // }
         //int truth=-10;
-        //  if(counttruth==1) {
+        // fill if: 0 = (< mt1,mt2) | 1 = (< m1 , >m2) | 2 = (>m1 , m2<) | 3 = (m1,m2 >)
+        if(hadTtrue.m()<cut && lepTtrue.m() < cut) counttruth=0;
+          else if(hadTtrue.m()<cut && lepTtrue.m()>=cut) counttruth=1;
+          else if(hadTtrue.m()>=cut && lepTtrue.m()<cut) counttruth=2;            
+          else if(hadTtrue.m()>=cut && lepTtrue.m()>=cut) counttruth=3;
+        //cout<<"here 3 "<<counttruth<<endl;
+        //
+        if(counttruth==type) {    
         //truth=1;
+            //cout<<jsize<<endl;
+            //cout<<(jets.at(bhhh)+jets.at(blll)).m()<<endl;
+            //cout<<lepTtrue.m()<<endl;
+            //
+        Njets_passing_kLooseID->Fill(jsize,weight);
         genmbb->Fill((jets.at(bhhh)+jets.at(blll)).m(),weight);        
         leptop->Fill(lepTtrue.m(),weight);
         hadtop->Fill(hadTtrue.m(),weight);
@@ -90,16 +101,20 @@ bool fullylep(int & bh, int & bl,vector<PseudoJet> jets, vector<PseudoJet> lepto
         genblep->Fill(jets.at(blll).pt(),weight);
         genbhadeta->Fill(jets.at(bhhh).eta(),weight);
         genblepeta->Fill(jets.at(blll).eta(),weight);
+            
+        } // close if cut
     };
     //////////////////////////////  
-    double hadtop[10]={1,1,1,1, //hadt.m(),hadt.pt(),hadt.eta(),hadt.phi(),
-        1,1,1,1, //hadW.m(),hadW.pt(),hadW.eta(),hadW.phi(),
-        1,1}; //truth,detabb};
-    for(unsigned i=0;i<10;i++) basicHadtop[i]->Fill(hadtop[i],weight);
+    //cout<<cut<<" "<<type<<endl;
+    //double hadtop[10]={1,1,1,1, //hadt.m(),hadt.pt(),hadt.eta(),hadt.phi(),
+    //    1,1,1,1, //hadW.m(),hadW.pt(),hadW.eta(),hadW.phi(),
+    //    1,1}; //truth,detabb};
+    //for(unsigned i=0;i<10;i++) basicHadtop[i]->Fill(hadtop[i],weight);
+    //cout<<cut<<" "<<type<<endl;
     return true;    
 } //close fullylep    
 /////////////////////////////////////////////////////////////////
-bool recolept2step(int & bh, int & bl,vector<PseudoJet> jets, vector<PseudoJet> leptons,vector<PseudoJet> neutrinos, vector<int> btag, vector<int> btrue, double met){
+bool recolept2step(int & bh, int & bl,vector<PseudoJet> jets, vector<PseudoJet> leptons,vector<PseudoJet> neutrinos, vector<int> btag, vector<int> btrue, double met, double weight, double cut, int type){
     // I did not reco the hadronic --- do not know which b to take
     // first try in the 2-step way 
     //double mw = (leptons.at(0)+neutrinos.at(0)).m();//teste
@@ -226,7 +241,7 @@ bool recolept2step(int & bh, int & bl,vector<PseudoJet> jets, vector<PseudoJet> 
 //double complex discriminant = pow(bw,2) -4*aw*cw;
 //cout<< creal(discriminant)<<" "<<cimag(discriminant) <<endl;
 /////////////////////////////////////////////////////////////////
-bool recotlepeq(int & bh, int & bl,vector<PseudoJet> jets, vector<PseudoJet> leptons,vector<PseudoJet> neutrinos, vector<int> btag, vector<int> btrue, double met){
+bool recotlepeq(int & bh, int & bl,vector<PseudoJet> jets, vector<PseudoJet> leptons,vector<PseudoJet> neutrinos, vector<int> btag, vector<int> btrue, double met, double weight, double cut, int type){
     double mw = wmass;// (leptons.at(0)+neutrinos.at(0)).m();//teste
     double wt = (leptons.at(0).px()*neutrinos.at(0).px()) + (leptons.at(0).py()*neutrinos.at(0).py());
     double mu = (pow(mw,2)/2 + wt);
@@ -340,7 +355,7 @@ bool recotlepeq(int & bh, int & bl,vector<PseudoJet> jets, vector<PseudoJet> lep
     return true;
 } // close recotlepeq
 /////////////////////////////////////////////////////////////////
-bool recohadt(int & bh, int & bl, vector<PseudoJet> jets, vector<PseudoJet> leptons,vector<PseudoJet> neutrinos, vector<int> btag, vector<int> btrue, double met){
+bool recohadt(int & bh, int & bl, vector<PseudoJet> jets, vector<PseudoJet> leptons,vector<PseudoJet> neutrinos, vector<int> btag, vector<int> btrue, double met, double weight, double cut, int type){
     ///////////////////////////////////////////////////////////////////
     // gen level info
     int blll=-1,bhhh=-1; vector<int> wj;
@@ -541,10 +556,9 @@ int recojets(vector<PseudoJet> particles,vector<PseudoJet> & jets_akt, vector<in
     //for (unsigned int i = 0; i < particles.size(); i++) if(particles.at(i).pt()<jet_ptminfinal) {njets =0; return njets; } //jets_final.push_back(particles.at(i));
     njets = jets_final.size();
     //cout<<njets<<endl;
-    Njets_passing_kLooseID->Fill(njets,weight);
     isbtagged(jets_akt, btag, bmistag,btrue); // check wheather the b(c)jet is b--(mis)tagable
     // fill btags
-    int count=0; for(unsigned int i = 0; i < njets; i++) if(btag[i]>0)count++; btagselected->Fill(count,weight);
+    int count=0; for(unsigned int i = 0; i < njets; i++) if(btag[i]>0)count++; //btagselected->Fill(count,weight);
     ///////////////////// check tag
     JetDefinition CA10(cambridge_algorithm, Rsb);
     // Filter definition to improve mass resolution
@@ -599,7 +613,7 @@ void isbtagged(vector<PseudoJet> jets, vector<int> & btag, vector<int> & bmistag
 // save the histos
 int save_hist(int isample,int reco,int sample){
     const char* Mass;
-    Mass = Form("Control_reco_%d_place_%d_.root",reco,isample); cout<<isample<<endl;
+    Mass = Form("Control_reco_%d_place_%d_.root",reco,isample); cout<<sample<<endl;
     TFile f1(Mass, "recreate");
     f1.cd();
     Njets_passing_kLooseID->Write();
@@ -611,11 +625,11 @@ int save_hist(int isample,int reco,int sample){
     genblep->Write();
     genbhadeta->Write();
     genblepeta->Write();
-    basicLeptons[0]->Write();
-    basicLeptons[1]->Write();
-    basicLeptons[2]->Write();
-    for(unsigned i=0;i<10;i++) basicHadtop[i]->Write();
-    for(unsigned i=0;i<19;i++) basicLeptop[i]->Write();
+    //basicLeptons[0]->Write();
+    //basicLeptons[1]->Write();
+    //basicLeptons[2]->Write();
+    //for(unsigned i=0;i<10;i++) basicHadtop[i]->Write();
+    //for(unsigned i=0;i<19;i++) basicLeptop[i]->Write();
     f1.Close();
     //
     Njets_passing_kLooseID->Reset();
@@ -627,14 +641,15 @@ int save_hist(int isample,int reco,int sample){
     genblep->Reset();
     genbhadeta->Reset();
     genblepeta->Reset();
-    basicLeptons.clear();
-    basicHadtop.clear();
-    basicLeptop.clear();
+    //basicLeptons.clear();
+    //basicHadtop.clear();
+    //basicLeptop.clear();
     //  basicLeptons[0]->Reset();
     //  basicLeptons[1]->Reset();
     //  basicLeptons[2]->Reset();
     //  for(unsigned i=0;i<10;i++) basicHadtop[i]->Reset();
     //  for(unsigned i=0;i<13;i++) basicLeptop[i]->Reset();
+    cout<<sample<<endl;
     return 0;
 }
 /////////////////////////////////////////////////////////////////////////
@@ -698,13 +713,14 @@ int decla(int mass){
     
     leptop = new TH1D("leptop1",  
                       label, 
-                      70, 0, 1000);
+                      170, 0, 1000);
+    //leptop->SetLogY(1);    
     leptop->GetYaxis()->SetTitle("");
     leptop->GetXaxis()->SetTitle("true M lep top"); 
     
     hadtop = new TH1D("hadtop1",  
                       label, 
-                      70, 0, 1000);
+                      140, 0, 1000);
     hadtop->GetYaxis()->SetTitle("");
     hadtop->GetXaxis()->SetTitle("true M had top"); 
     

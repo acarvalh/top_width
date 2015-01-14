@@ -56,14 +56,15 @@ int main() {
         // to each cut deffinition and each one of the four region deffintions I pass by the four files and then save
         for(unsigned int mtdef=2; mtdef<3; mtdef++)
         for(unsigned int type=0; type<1;type++) { // for cut deffinition
+            decla(0);
             // had/lep | plus/minus
             // fill if: 0 = (< mt1,mt2) | 1 = (< m1 , >m2) | 2 = (>m1 , m2<) | 3 = (m1,m2 >) 
             for(unsigned int isample=0; isample<3;isample++){ 
             // samples with weights 
-            double weight;
-                double CX[5] = {1,1,1,1,1};//22.67,1.103,1.103,100, 24.92};
-            for (unsigned i=0; i<5; i++ ) if(isample==i) weight = 1./CX[i]; // decide the mt cut    
-                decla(0);
+                double weight; double nevents =100000, lumi = 20;// /fb
+                double finalevents; // counter 
+                double CX[5] = {22.67,1.103,1.103,100, 24.92};// 1,1,1,1,1};//
+            for (unsigned i=0; i<5; i++ ) if(isample==i) weight = CX[i]*lumi/nevents; // decide the mt cut    
                 file = path[ifolder] + sample[isample]+ data;
                 //////////////////////////////////
                 cout<<"\n\n reading file = "<<file<<endl;
@@ -132,6 +133,7 @@ int main() {
                     } else if ( !semilep && nlep>1 && njets>1 && numbb >1){
                         //cout<<"njets "<<njets<<" nleptons "<<counterl<<" pzl "<< neutrinos.size()<<endl;
                         hadtopreco = fullylep(bh,bl,jets,leptons,neutrinos,btag,btrue,met,weight,cut[mtdef],type); 
+                        if(hadtopreco) finalevents=+ 
                         //cout<<"enterednjets "<<njets<<" nleptons "<<counterl<<" pzl "<< neutrinos.at(0).pz()<<endl;
                     } // close if !semilep
                     // To sum all and divide accordingly with a higher mt deffinition 
@@ -141,7 +143,7 @@ int main() {
                } // close for sample
                cout<<"\n\n closing file = "<<file<<endl; //cout<<ifolder<<endl;
                save_hist(1,ifolder,type);
-   
+               if(type==0) cout<<"OnOn, mtcut ="<< cut<<endl;
                //cout<<"\n\n closing file = "<<endl; 
         } // close fo type
     }

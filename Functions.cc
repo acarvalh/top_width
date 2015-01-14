@@ -85,13 +85,16 @@ bool fullylep(int & bh, int & bl,vector<PseudoJet> jets, vector<PseudoJet> lepto
           else if(hadTtrue.m()<cut && lepTtrue.m()>=cut) counttruth=1;
           else if(hadTtrue.m()>=cut && lepTtrue.m()<cut) counttruth=2;            
           else if(hadTtrue.m()>=cut && lepTtrue.m()>=cut) counttruth=3;
-        //cout<<"here 3 "<<counttruth<<endl;
+        //cout<<"here 3 "<<cut<<endl;
+        if (counttruth==2 || counttruth==3)cout<<"here 3 "<<counttruth<<endl;
         //
-        if(counttruth==type) {    
+        if(1>0
+           && counttruth==type
+           ) {    
         //truth=1;
             //cout<<jsize<<endl;
             //cout<<(jets.at(bhhh)+jets.at(blll)).m()<<endl;
-            //cout<<lepTtrue.m()<<endl;
+            //cout<<counttruth<<endl;
             //
         Njets_passing_kLooseID->Fill(jsize,weight);
         genmbb->Fill((jets.at(bhhh)+jets.at(blll)).m(),weight);        
@@ -713,14 +716,14 @@ int decla(int mass){
     
     leptop = new TH1D("leptop1",  
                       label, 
-                      170, 0, 1000);
+                      170, 0, 500);
     //leptop->SetLogY(1);    
     leptop->GetYaxis()->SetTitle("");
     leptop->GetXaxis()->SetTitle("true M lep top"); 
     
     hadtop = new TH1D("hadtop1",  
                       label, 
-                      140, 0, 1000);
+                      140, 0, 500);
     hadtop->GetYaxis()->SetTitle("");
     hadtop->GetXaxis()->SetTitle("true M had top"); 
     

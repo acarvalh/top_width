@@ -1,3 +1,16 @@
+organization of files
+
+    string path[1]={
+        "/afs/cern.ch/work/a/acarvalh/tt_fulylep/ttbar_gen180/"
+        //"/data2/TopWidth/MG5_aMC_v2_1_0/wwbbfullep/top_Wvary/",
+        //"/data2/TopWidth/MG5_aMC_v2_1_0/wwbbfullep_OnOn/top_Wvary/",
+        //"/data2/TopWidth/MG5_aMC_v2_1_0/wwbbfullep_OnOff/top_Wvary/",
+        //"/data2/TopWidth/MG5_aMC_v2_1_0/wwbbfullep_OffOn/top_Wvary/",
+        //"/data2/TopWidth/MG5_aMC_v2_1_0/wwbbfullep_OffOff/top_Wvary/"
+    };
+
+    //string sample[7] = {"Wt_0","Wt_1","Wt_2","Wt_3","Wt_4","Wt_5","Wt_6"};// the last one have 50k
+
 see one particular event
 
                     //if(ievent== 32634) {

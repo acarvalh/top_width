@@ -1,9 +1,9 @@
 // inputs
 // Analysis
 bool semilep=false;
-bool resonant=true, spin2=true;
+bool showering=false;
 bool bkg = false;
-bool nicepic; // if false makes raw efficiencies, if true just make the plots
+bool nicepic = false; // if false makes raw efficiencies, if true just make the plots
 //
 /////////////////////////////////
 // sample

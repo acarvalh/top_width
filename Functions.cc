@@ -59,7 +59,7 @@ bool fullylep(int & bh, int & bl,vector<PseudoJet> jets, vector<PseudoJet> lepto
     // gen level info // had == plus
     int blll=-1, bhhh=-1, lep1=-1, lep2=-1, nu1=-1, nu2=-1;
     unsigned int jsize = jets.size();
-    for(unsigned int nj1=0; nj1< jsize; nj1++) if(btrue[nj1]==5) bhhh=nj1; else if(btrue[nj1]==-5) blll=nj1; 
+    for(unsigned int nj1=0; nj1< jsize; nj1++) if(btrue[nj1]==-5) bhhh=nj1; else if(btrue[nj1]==5) blll=nj1; 
     int counttruth =-1; 
     // I have 2 isolated leptons, I assume are the two leading
     for(unsigned int nj1=0; nj1< 2; nj1++) {if(leptons.at(nj1).user_index() > 0) lep1=nj1; else lep2=nj1;  }
@@ -616,7 +616,7 @@ void isbtagged(vector<PseudoJet> jets, vector<int> & btag, vector<int> & bmistag
 // save the histos
 int save_hist(int isample,int reco,int sample){
     const char* Mass;
-    Mass = Form("Control_reco_%d_place_%d_.root",reco,isample); cout<<sample<<endl;
+    Mass = Form("Control_mtdef_%d_type_%d_.root",reco,sample); cout<<sample<<endl;
     TFile f1(Mass, "recreate");
     f1.cd();
     Njets_passing_kLooseID->Write();

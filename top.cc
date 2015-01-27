@@ -4,6 +4,8 @@
 // ./HH_VBF
 /////////////////
 /*
+ To macht gen numbering scheeme
+ 
  mg5>define bb = b b~
  Defined multiparticle bb = b b~
  mg5>define ww = w+ w-
@@ -23,10 +25,12 @@
  generate p p > t w- b~, w- > ll nu, (t > w+ b, w+ > j j) on-off:  21 diagrams
  generate p p > t~ w+ b, w+ > j j , (t~ > w- b~, w- > ll nu) off-on: 21 diagrams
  */
+//////////////////////////////////////////////////////////
 #include "fastjet/ClusterSequence.hh"
 #include "fastjet/Selector.hh"
 #include "fastjet/tools/MassDropTagger.hh"
 #include <fstream>
+#include <vector>
 using namespace fastjet;
 using namespace std;
 #include "Functions.h"
@@ -34,30 +38,24 @@ using namespace std;
 int main() {
     srand( time(NULL) );
     hello();
-    ////////////////////////////////
-    // input
-    //vector<string> filename;
     string file, data;
+    //////////////////////////////////////////////////
+    // input
     // we are going to have only four samples, with 180 GeV mt selection, merge them and separate
-    string path[1]={
-        "/afs/cern.ch/work/a/acarvalh/tt_fulylep/ttbar_gen180/"
-        //"/data2/TopWidth/MG5_aMC_v2_1_0/wwbbfullep/top_Wvary/",
-        //"/data2/TopWidth/MG5_aMC_v2_1_0/wwbbfullep_OnOn/top_Wvary/",
-        //"/data2/TopWidth/MG5_aMC_v2_1_0/wwbbfullep_OnOff/top_Wvary/",
-        //"/data2/TopWidth/MG5_aMC_v2_1_0/wwbbfullep_OffOn/top_Wvary/",
-        //"/data2/TopWidth/MG5_aMC_v2_1_0/wwbbfullep_OffOff/top_Wvary/"
-    };
-    //string sample[7] = {"Wt_0","Wt_1","Wt_2","Wt_3","Wt_4","Wt_5","Wt_6"};// the last one have 50k
+    string path[1]={"/afs/cern.ch/work/a/acarvalh/tt_fulylep/ttbar_gen180/"};
     string sample[5] = {"ttOnOnLep180","ttOnOffLep180","ttOffOnLep180","ttOffOffLep180","ttFullLep180"};// the last one have 50k    
-    string label[5] = {"OnOn","OnOff","OffOn","OffOff","Full"};// the last one have 50k  
-    data = ".lhe.decayed";
-    //data = ".lhe.shower";
+    string label[5] = {"OnOn","OnOff","OffOn","OffOff","Full"}; 
+    if(!showering)data = ".lhe.decayed"; else data = ".lhe.shower";
     double cut[10] = {180,185, 190, 195, 200, 210, 220, 230, 240, 250};
     /////////////////////////////////////////////////////////
     // information I want to make a table
     //
     // mtdef sample type CX net_eff
     // just need net_eff / sample / mtdeff ===> vector
+    //vector< vector< vector< double > > > finaleventsN; // save nevents / sample / type / mtdeff
+    //vector<vector< double > > finaleventsfrom[4]; // trace / sample / type / mtdeff
+    vector< vector<  vector<double> > > finaleventsN(10, vector< vector<double> >(5, vector<double>(4))); // trace / sample / type / mtdeff
+    vector< vector<  vector<int> > > finaleventsfrom(10, vector< vector<int> >(5, vector<int>(4))); // trace / sample / type / mtdeff
     /////////////////////////////////////////////////////////
     // gen ifo deffinitions
     //
@@ -66,18 +64,19 @@ int main() {
     /////////////////////////////////////////////////////////
     double CX[5] = {22.67,1.103,1.103,100, 24.92};// 1,1,1,1,1};//
     double nevents =100000, lumi = 50;// /fb
-    vector< vector< double > > finalevents; // save nevents / file / mtdeff
-    vector< vector< double > > finaleventsfrom; // trace / file / mtdeff
+    //////////////////////////////////////////////////////////////////////////////////
     // to each cut deffinition and each one of the four region deffintions I pass by the four files and then save 
     for(unsigned int mtdef=2; mtdef<3; mtdef++) // for gen cut deffinition
-      for(unsigned int isample=0; isample<1;isample++)
-        for(unsigned int type=0; type<1;type++) { 
+      for(unsigned int type=0; type<2;type++) { 
+          double finalevents0[4]; // to be obsolete
+          for(unsigned int isample=0; isample<5;isample++) {
              decla(0);
              double finalevents=0; // counter for net eff
              ///////////////////////////////////////////////
              double weight; 
-             for(unsigned i=0; i<5; i++ ) if(isample==i && nicepic) weight = CX[i]*lumi/nevents;   
-               else if(isample==i && !nicepic) weight = CX[i]*lumi/nevents; // this one makes raw efficiencies
+             for(unsigned i=0; i<5; i++ ) 
+               {if(isample==i && nicepic) weight = CX[i]*lumi/nevents;   
+                   else if(isample==i && !nicepic) weight = lumi/nevents;} // this one makes raw efficiencies
              //////////////////////////////////////////////
              file = path[0] + sample[isample]+ data;
              cout<<"\n\n reading file = "<<file<<endl;
@@ -103,39 +102,48 @@ int main() {
                       leptons.push_back(fastjet::PseudoJet(Px,Py,Pz,E)); // counterl++;
                       leptons.at(counterl).set_user_index(pID); // save charge for gen deffinition
                     } else if (abs(pID)==12 || abs(pID)==14) {
-                      neutrinos.push_back(fastjet::PseudoJet(Px,Py,Pz,E)); countern++;
-                      neutrinos.at(countern).set_user_index(pID);
+                      neutrinos.push_back(fastjet::PseudoJet(Px,Py,Pz,E)); 
+                      neutrinos.at(countern).set_user_index(pID); countern++;
                     } // close if 
                   } // close for each particle
                   ////////////////////////////////////////////////////////////////////
                   // Analyse
                   vector<PseudoJet> jets; vector<int> btag, bmistag, fattag, btrue; int bh,bl; double met=0;
                   bool lepcuts=false, hadtopreco=false, lepwreco=false;
-                  int numbb=0; for(unsigned i =0; i< btrue.size() ; i++ ) if(abs(btrue[i])==5) numbb++; // "b--taggable gen-b's
-                  //
                   int nlep =recol(jets,leptons,neutrinos); // lepton isolation and basic cuts  
                   int njets = recojets(particles, jets,btag,bmistag,fattag,btrue); // jet deffinition and basic cuts
+                  int numbb=0; for(unsigned i =0; i< btrue.size() ; i++ ) if(abs(btrue[i])==5) numbb++; // "b--taggable gen-b's
                   if(semilep && nlep>0 && njets>3 && numbb >1){ 
                     // NEED TO RE-IMPLEMENT THE MET cut!!!!
                     if(lepcuts && reco == 0) hadtopreco=recohadt(bh,bl,jets,leptons,neutrinos,btag,btrue,met,weight,cut[mtdef],type); // reco by had
                     if(lepcuts && reco == 1) lepwreco = recolept2step(bh,bl,jets,leptons,neutrinos,btag,btrue,met,weight,cut[mtdef],type); // by lep
                     }else if(!semilep && nlep>1 && njets>1 && numbb >1){ // close if semilep
-                      hadtopreco = fullylep(bh,bl,jets,leptons,neutrinos,btag,btrue,met,weight,cut[mtdef],type); if(hadtopreco)finalevents++; 
+                      hadtopreco = fullylep(bh,bl,jets,leptons,neutrinos,btag,btrue,met,weight,cut[mtdef],type); 
+                        if(hadtopreco)finalevents++; else if(type ==0 && isample==0) cout<<"ops"<<endl; 
+                        //cout<<"here"<<endl;
                     } // close if !semilep
-              } in1.close(); // close for each event
-              save_hist(1,imtdef,type); // hitogram / type / mtdef
-              ///////////////////////////////////////////////////////////////////// 
-              // save relevant info
+                } in1.close(); // close for each event
+              /////////////////////////////////////////////////////////////////////
+              // intermediate check
               finalevents0[isample] = finalevents;
               double neventslumi = (finalevents0[0]*CX[0]+finalevents0[1]*CX[1]+finalevents0[2]*CX[2]+finalevents0[3]*CX[3])*1000*lumi/nevents;
-              double neventsall = (CX[0]+CX[1]+CX[2])*1000*lumi;
-              ///////////////////////////////////////////////////////////////////
-              // intermediate check
+              double neventsa9ll = (CX[0]+CX[1]+CX[2])*1000*lumi;
               if(!nicepic)cout<<" raw nevents passed = "<< finalevents0[isample]<<" sample "<<isample<<endl;               
-              cout<<"\n\n closing file = "<<file<<endl; cout<<" "<<endl;
-              cout<<"mt cut ="<< cut[mtdef]<<endl;
-        } // close fo type
+              cout<<"\n\n closing file = "<<file<<endl; //cout<<" "<<endl;
+              cout<<"mt cut ="<< cut[mtdef]<<endl;   
+              // save to table
+              int tablecounter=0;
+              finaleventsN[mtdef][isample][type] = finalevents; // raw events always! 
+              //finaleventsfrom[mtdef][isample][type] = isample + type; //finaleventsfrom.at(tablecounter).push_back(type);
+              } // close for sample
+              save_hist(1,mtdef,type); // hitogram / type / mtdef ==> after pass by the 4 samples
+        } // close fo type and mtcut
         //////////////////////////////////////////////////////////////////////////
         // make the table 
-    
+    cout<<"mtcut type sample"<<endl;
+    for(unsigned int mtdef=2; mtdef<3; mtdef++) for(unsigned int type=0; type<2;type++) for(unsigned int isample=0; isample<5;isample++) {
+        cout<<cut[mtdef]<<" " <<label[type]<<" "<<sample[isample]<<" "<<finaleventsN[mtdef][isample][type]<<endl;
+        //cout<<" "<<endl;
+        //cout<<" "<<mtdef<<" "<< type<<" "<<isample<<" "<<finaleventsfrom[mtdef][isample][type]<<endl;
+        } //
     }

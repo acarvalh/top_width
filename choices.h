@@ -3,6 +3,7 @@
 bool semilep=false;
 bool resonant=true, spin2=true;
 bool bkg = false;
+bool nicepic; // if false makes raw efficiencies, if true just make the plots
 //
 /////////////////////////////////
 // sample

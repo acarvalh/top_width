@@ -49,101 +49,93 @@ int main() {
     };
     //string sample[7] = {"Wt_0","Wt_1","Wt_2","Wt_3","Wt_4","Wt_5","Wt_6"};// the last one have 50k
     string sample[5] = {"ttOnOnLep180","ttOnOffLep180","ttOffOnLep180","ttOffOffLep180","ttFullLep180"};// the last one have 50k    
+    string label[5] = {"OnOn","OnOff","OffOn","OffOff","Full"};// the last one have 50k  
     data = ".lhe.decayed";
     //data = ".lhe.shower";
     double cut[10] = {180,185, 190, 195, 200, 210, 220, 230, 240, 250};
-    for(unsigned int ifolder=0; ifolder<1;ifolder++) // { four samples by folder
-        // to each cut deffinition and each one of the four region deffintions I pass by the four files and then save
-        for(unsigned int mtdef=2; mtdef<3; mtdef++)
-        for(unsigned int type=0; type<1;type++) { // for cut deffinition
-            decla(0);
-            // had/lep | plus/minus
-            // fill if: 0 = (< mt1,mt2) | 1 = (< m1 , >m2) | 2 = (>m1 , m2<) | 3 = (m1,m2 >) 
-            for(unsigned int isample=0; isample<3;isample++){ 
-            // samples with weights 
-                double weight; double nevents =100000, lumi = 20;// /fb
-                double finalevents; // counter 
-                double CX[5] = {22.67,1.103,1.103,100, 24.92};// 1,1,1,1,1};//
-            for (unsigned i=0; i<5; i++ ) if(isample==i) weight = CX[i]*lumi/nevents; // decide the mt cut    
-                file = path[ifolder] + sample[isample]+ data;
-                //////////////////////////////////
-                cout<<"\n\n reading file = "<<file<<endl;
-                ifstream in1;
-                in1.open(file.c_str());
-                //return 0;
-                for(unsigned int ievent=0;ievent<100000;ievent++){ // for each event  //
-                    string c;
-                    in1>>c;
-                    double Px, Py , Pz, E;
-                    int pID, mother;
-                    unsigned int nparticles;
-                    vector<PseudoJet> particles;//jets 
-                    vector<PseudoJet> neutrinos;
-                    vector<PseudoJet> leptons; 
-                    vector<PseudoJet> tops;                    
-                    int nb = 0;
-                    in1>>nparticles; unsigned int counter=0,countert=0,counterl=0,countern=0;
-                    for(unsigned int ipart=0;ipart<nparticles;ipart++){ // loop on particles
-                        in1 >> pID >> Px >> Py >> Pz >> E ;//>> idup;
-                        if (abs(pID) < 6 || pID==21){  // if a quark/gluon -- neglect hadrons
-                            particles.push_back(fastjet::PseudoJet(Px,Py,Pz,E)); 
-                            particles.at(counter).set_user_index(pID); 
-                            if(abs(pID) == 5) nb++;  // count b's and no-b's
-                            //cout<<"particle flavour "<< particles.at(counter).user_index()<<endl;
-                            counter++;
-                        } else if (abs(pID)==6) {
-                            tops.push_back(fastjet::PseudoJet(Px,Py,Pz,E));
-                            countert++;
-                        } else if (abs(pID)==11 || abs(pID)==13) {
-                            leptons.push_back(fastjet::PseudoJet(Px,Py,Pz,E));
-                            leptons.at(counterl).set_user_index(pID); 
-                            counterl++;
-                        } else if (abs(pID)==12 || abs(pID)==14) {
-                            neutrinos.push_back(fastjet::PseudoJet(Px,Py,Pz,E));
-                            neutrinos.at(countern).set_user_index(pID);
-                            countern++;
-                        }
-                        /////////////////////////////////////////////////
-                    } // close for each particle
-                    //if(ievent== 32634) {
-                    //    cout<<"jet1 "<<particles.at(0).px()<<" "<<particles.at(0).py()<<" "<<particles.at(0).pz()<<" "<<particles.at(0).e()<<endl;
-                    //    cout<<"jet2 "<<particles.at(1).px()<<" "<<particles.at(1).py()<<" "<<particles.at(1).pz()<<" "<<particles.at(1).e()<<endl;
-                    //    cout<<"jet3 "<<particles.at(2).px()<<" "<<particles.at(2).py()<<" "<<particles.at(2).pz()<<" "<<particles.at(2).e()<<endl;
-                    //    cout<<"jet4 "<<particles.at(3).px()<<" "<<particles.at(3).py()<<" "<<particles.at(3).pz()<<" "<<particles.at(3).e()<<endl;
-                    //    cout<<"lepton "<<leptons.at(0).px()<<" "<<leptons.at(0).py()<<" "<<leptons.at(0).pz()<<" "<<leptons.at(0).e()<<endl;
-                    //    cout<<"neutrino "<<particles.at(0).px()<<" "<<particles.at(0).py()<<" "<<particles.at(0).pz()<<" "<<particles.at(0).e()<<endl;
-                    //}
-                    vector<PseudoJet> jets;       // cout<<"here "<< counterl <<endl;
-                    vector<int> btag, bmistag, fattag, btrue; int bh,bl; double met=0;
-                    int njets = recojets(particles, jets,btag,bmistag,fattag,btrue);
-                    int numbb=0; for(unsigned i =0; i< btrue.size() ; i++ ) if(abs(btrue[i])==5) numbb++; // "b--taggable gen-b's
-                    //cout<<"here "<< numbb <<endl;
-                    // lepton isolation and basic cuts
-                    int nlep =recol(jets,leptons,neutrinos); // returned the leptons 
-                    bool lepcuts=false, hadtopreco=false, lepwreco=false;
-                    int count=0; for(unsigned int i = 0; i < njets; i++) if(btag[i]>0)count++;
-                    if( semilep && nlep>0 && njets>3 && numbb >1// only two jets to reco the hadronic W and make enought balance to reco met
-                       //&& count>1
-                       ){ cout<<"njets "<<njets<<" nleptons "<<counterl<<" pzl "<< neutrinos.at(0).pz()<<endl;
-                        //int true_tops = truetops(jets,leptons,neutrinos,btag,btrue);  
-                        // NEED TO RE-IMPLEMENT THE MET cut!!!!
-                        if(lepcuts && reco == 0) hadtopreco=recohadt(bh,bl,jets,leptons,neutrinos,btag,btrue,met,weight,cut[mtdef],type); // && true_tops==type )
-                        if(lepcuts && reco == 1) lepwreco = recolept2step(bh,bl,jets,leptons,neutrinos,btag,btrue,met,weight,cut[mtdef],type); // && true_tops==type )
-                        //if(lepcuts && true_tops==type )lepwreco = recotlepeq(bh,bl,jets,leptons,neutrinos,btag,btrue,met, weight);
-                    } else if ( !semilep && nlep>1 && njets>1 && numbb >1){
-                        //cout<<"njets "<<njets<<" nleptons "<<counterl<<" pzl "<< neutrinos.size()<<endl;
-                        hadtopreco = fullylep(bh,bl,jets,leptons,neutrinos,btag,btrue,met,weight,cut[mtdef],type); 
-                        if(hadtopreco) finalevents=+ 
-                        //cout<<"enterednjets "<<njets<<" nleptons "<<counterl<<" pzl "<< neutrinos.at(0).pz()<<endl;
+    /////////////////////////////////////////////////////////
+    // information I want to make a table
+    //
+    // mtdef sample type CX net_eff
+    // just need net_eff / sample / mtdeff ===> vector
+    /////////////////////////////////////////////////////////
+    // gen ifo deffinitions
+    //
+    // had/lep | plus/minus
+    // fill if: 0 = (< mt1,mt2) | 1 = (< m1 , >m2) | 2 = (>m1 , m2<) | 3 = (m1,m2 >) 
+    /////////////////////////////////////////////////////////
+    double CX[5] = {22.67,1.103,1.103,100, 24.92};// 1,1,1,1,1};//
+    double nevents =100000, lumi = 50;// /fb
+    vector< vector< double > > finalevents; // save nevents / file / mtdeff
+    vector< vector< double > > finaleventsfrom; // trace / file / mtdeff
+    // to each cut deffinition and each one of the four region deffintions I pass by the four files and then save 
+    for(unsigned int mtdef=2; mtdef<3; mtdef++) // for gen cut deffinition
+      for(unsigned int isample=0; isample<1;isample++)
+        for(unsigned int type=0; type<1;type++) { 
+             decla(0);
+             double finalevents=0; // counter for net eff
+             ///////////////////////////////////////////////
+             double weight; 
+             for(unsigned i=0; i<5; i++ ) if(isample==i && nicepic) weight = CX[i]*lumi/nevents;   
+               else if(isample==i && !nicepic) weight = CX[i]*lumi/nevents; // this one makes raw efficiencies
+             //////////////////////////////////////////////
+             file = path[0] + sample[isample]+ data;
+             cout<<"\n\n reading file = "<<file<<endl;
+             ifstream in1; in1.open(file.c_str());
+             for(unsigned int ievent=0;ievent<100000;ievent++){ // read and process for each event 
+                double Px, Py , Pz, E; int pID, mother; unsigned int nparticles;
+                unsigned int counter=0,countert=0,counterl=0,countern=0, nb = 0;
+                vector<PseudoJet> particles;//jets 
+                vector<PseudoJet> neutrinos;
+                vector<PseudoJet> leptons; 
+                vector<PseudoJet> tops;                    
+                string c; in1>>c; in1>>nparticles; 
+                /////////////////////////////////////////////////////////////////////
+                // read and understand
+                for(unsigned int ipart=0;ipart<nparticles;ipart++){ // loop on particles
+                  in1 >> pID >> Px >> Py >> Pz >> E ;//>> idup;
+                  if(abs(pID) < 6 || pID==21){ // quark / gluon
+                      particles.push_back(fastjet::PseudoJet(Px,Py,Pz,E)); 
+                      particles.at(counter).set_user_index(pID); //cout<<"particle flavour "<< particles.at(counter).user_index()<<endl;
+                    if(abs(pID) == 5) nb++; counter++; // count b's and no-b's
+                    } else if (abs(pID)==6) {tops.push_back(fastjet::PseudoJet(Px,Py,Pz,E)); countert++; // b--quarks
+                    } else if (abs(pID)==11 || abs(pID)==13) {
+                      leptons.push_back(fastjet::PseudoJet(Px,Py,Pz,E)); // counterl++;
+                      leptons.at(counterl).set_user_index(pID); // save charge for gen deffinition
+                    } else if (abs(pID)==12 || abs(pID)==14) {
+                      neutrinos.push_back(fastjet::PseudoJet(Px,Py,Pz,E)); countern++;
+                      neutrinos.at(countern).set_user_index(pID);
+                    } // close if 
+                  } // close for each particle
+                  ////////////////////////////////////////////////////////////////////
+                  // Analyse
+                  vector<PseudoJet> jets; vector<int> btag, bmistag, fattag, btrue; int bh,bl; double met=0;
+                  bool lepcuts=false, hadtopreco=false, lepwreco=false;
+                  int numbb=0; for(unsigned i =0; i< btrue.size() ; i++ ) if(abs(btrue[i])==5) numbb++; // "b--taggable gen-b's
+                  //
+                  int nlep =recol(jets,leptons,neutrinos); // lepton isolation and basic cuts  
+                  int njets = recojets(particles, jets,btag,bmistag,fattag,btrue); // jet deffinition and basic cuts
+                  if(semilep && nlep>0 && njets>3 && numbb >1){ 
+                    // NEED TO RE-IMPLEMENT THE MET cut!!!!
+                    if(lepcuts && reco == 0) hadtopreco=recohadt(bh,bl,jets,leptons,neutrinos,btag,btrue,met,weight,cut[mtdef],type); // reco by had
+                    if(lepcuts && reco == 1) lepwreco = recolept2step(bh,bl,jets,leptons,neutrinos,btag,btrue,met,weight,cut[mtdef],type); // by lep
+                    }else if(!semilep && nlep>1 && njets>1 && numbb >1){ // close if semilep
+                      hadtopreco = fullylep(bh,bl,jets,leptons,neutrinos,btag,btrue,met,weight,cut[mtdef],type); if(hadtopreco)finalevents++; 
                     } // close if !semilep
-                    // To sum all and divide accordingly with a higher mt deffinition 
-                    // we need to do a ttree insted                    
-                } // close for each event
-               in1.close();  
-               } // close for sample
-               cout<<"\n\n closing file = "<<file<<endl; //cout<<ifolder<<endl;
-               save_hist(1,ifolder,type);
-               if(type==0) cout<<"OnOn, mtcut ="<< cut<<endl;
-               //cout<<"\n\n closing file = "<<endl; 
+              } in1.close(); // close for each event
+              save_hist(1,imtdef,type); // hitogram / type / mtdef
+              ///////////////////////////////////////////////////////////////////// 
+              // save relevant info
+              finalevents0[isample] = finalevents;
+              double neventslumi = (finalevents0[0]*CX[0]+finalevents0[1]*CX[1]+finalevents0[2]*CX[2]+finalevents0[3]*CX[3])*1000*lumi/nevents;
+              double neventsall = (CX[0]+CX[1]+CX[2])*1000*lumi;
+              ///////////////////////////////////////////////////////////////////
+              // intermediate check
+              if(!nicepic)cout<<" raw nevents passed = "<< finalevents0[isample]<<" sample "<<isample<<endl;               
+              cout<<"\n\n closing file = "<<file<<endl; cout<<" "<<endl;
+              cout<<"mt cut ="<< cut[mtdef]<<endl;
         } // close fo type
+        //////////////////////////////////////////////////////////////////////////
+        // make the table 
+    
     }

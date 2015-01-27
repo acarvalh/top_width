@@ -86,7 +86,7 @@ bool fullylep(int & bh, int & bl,vector<PseudoJet> jets, vector<PseudoJet> lepto
           else if(hadTtrue.m()>=cut && lepTtrue.m()<cut) counttruth=2;            
           else if(hadTtrue.m()>=cut && lepTtrue.m()>=cut) counttruth=3;
         //cout<<"here 3 "<<cut<<endl;
-        if (counttruth==2 || counttruth==3)cout<<"here 3 "<<counttruth<<endl;
+        //if (counttruth==2 || counttruth==3)cout<<"here 3 "<<counttruth<<endl;
         //
         if(1>0
            && counttruth==type
@@ -104,9 +104,9 @@ bool fullylep(int & bh, int & bl,vector<PseudoJet> jets, vector<PseudoJet> lepto
         genblep->Fill(jets.at(blll).pt(),weight);
         genbhadeta->Fill(jets.at(bhhh).eta(),weight);
         genblepeta->Fill(jets.at(blll).eta(),weight);
-            
-        } // close if cut
-    };
+            return true;
+        } else return false; // close if cut
+    } else return false;
     //////////////////////////////  
     //cout<<cut<<" "<<type<<endl;
     //double hadtop[10]={1,1,1,1, //hadt.m(),hadt.pt(),hadt.eta(),hadt.phi(),
@@ -114,7 +114,7 @@ bool fullylep(int & bh, int & bl,vector<PseudoJet> jets, vector<PseudoJet> lepto
     //    1,1}; //truth,detabb};
     //for(unsigned i=0;i<10;i++) basicHadtop[i]->Fill(hadtop[i],weight);
     //cout<<cut<<" "<<type<<endl;
-    return true;    
+    
 } //close fullylep    
 /////////////////////////////////////////////////////////////////
 bool recolept2step(int & bh, int & bl,vector<PseudoJet> jets, vector<PseudoJet> leptons,vector<PseudoJet> neutrinos, vector<int> btag, vector<int> btrue, double met, double weight, double cut, int type){

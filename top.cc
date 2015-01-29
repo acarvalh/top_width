@@ -30,6 +30,7 @@
 #include "fastjet/Selector.hh"
 #include "fastjet/tools/MassDropTagger.hh"
 #include <fstream>
+#include <iostream>
 #include <vector>
 using namespace fastjet;
 using namespace std;
@@ -66,8 +67,8 @@ int main() {
     double nevents =100000, lumi = 50;// /fb
     //////////////////////////////////////////////////////////////////////////////////
     // to each cut deffinition and each one of the four region deffintions I pass by the four files and then save 
-    for(unsigned int mtdef=2; mtdef<3; mtdef++) // for gen cut deffinition
-      for(unsigned int type=0; type<2;type++) { 
+    for(unsigned int mtdef=0; mtdef<10; mtdef++) // for gen cut deffinition
+      for(unsigned int type=0; type<4;type++) { 
           double finalevents0[4]; // to be obsolete
           for(unsigned int isample=0; isample<5;isample++) {
              decla(0);
@@ -99,8 +100,8 @@ int main() {
                     if(abs(pID) == 5) nb++; counter++; // count b's and no-b's
                     } else if (abs(pID)==6) {tops.push_back(fastjet::PseudoJet(Px,Py,Pz,E)); countert++; // b--quarks
                     } else if (abs(pID)==11 || abs(pID)==13) {
-                      leptons.push_back(fastjet::PseudoJet(Px,Py,Pz,E)); // counterl++;
-                      leptons.at(counterl).set_user_index(pID); // save charge for gen deffinition
+                      leptons.push_back(fastjet::PseudoJet(Px,Py,Pz,E)); // 
+                      leptons.at(counterl).set_user_index(pID); counterl++; // save charge for gen deffinition
                     } else if (abs(pID)==12 || abs(pID)==14) {
                       neutrinos.push_back(fastjet::PseudoJet(Px,Py,Pz,E)); 
                       neutrinos.at(countern).set_user_index(pID); countern++;
@@ -119,7 +120,7 @@ int main() {
                     if(lepcuts && reco == 1) lepwreco = recolept2step(bh,bl,jets,leptons,neutrinos,btag,btrue,met,weight,cut[mtdef],type); // by lep
                     }else if(!semilep && nlep>1 && njets>1 && numbb >1){ // close if semilep
                       hadtopreco = fullylep(bh,bl,jets,leptons,neutrinos,btag,btrue,met,weight,cut[mtdef],type); 
-                        if(hadtopreco)finalevents++; else if(type ==0 && isample==0) cout<<"ops"<<endl; 
+                        if(hadtopreco)finalevents++;// else if(type ==0 && isample==0) cout<<"ops"<<endl; 
                         //cout<<"here"<<endl;
                     } // close if !semilep
                 } in1.close(); // close for each event
@@ -140,10 +141,15 @@ int main() {
         } // close fo type and mtcut
         //////////////////////////////////////////////////////////////////////////
         // make the table 
-    cout<<"mtcut type sample"<<endl;
-    for(unsigned int mtdef=2; mtdef<3; mtdef++) for(unsigned int type=0; type<2;type++) for(unsigned int isample=0; isample<5;isample++) {
+        ofstream NetEffMtGen;
+        NetEffMtGen.open("NetEffMtGen.txt"); // file to save
+        cout<<"mtcut type sample NEtEv"<<endl;
+        NetEffMtGen<<"mtcut type sample NEtEv"<<endl;
+        for(unsigned int mtdef=0; mtdef<10; mtdef++) for(unsigned int type=0; type<2;type++) for(unsigned int isample=0; isample<5;isample++) {
         cout<<cut[mtdef]<<" " <<label[type]<<" "<<sample[isample]<<" "<<finaleventsN[mtdef][isample][type]<<endl;
+        NetEffMtGen<< cut[mtdef]<<" " << type <<" "<< isample<<" "<<finaleventsN[mtdef][isample][type]<<endl;
         //cout<<" "<<endl;
         //cout<<" "<<mtdef<<" "<< type<<" "<<isample<<" "<<finaleventsfrom[mtdef][isample][type]<<endl;
         } //
+        NetEffMtGen.close();
     }

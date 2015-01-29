@@ -57,20 +57,25 @@ int truetops(vector<PseudoJet> jets, vector<PseudoJet> leptons,vector<PseudoJet>
 bool fullylep(int & bh, int & bl,vector<PseudoJet> jets, vector<PseudoJet> leptons,vector<PseudoJet> neutrinos, vector<int> btag, vector<int> btrue, double met, double weight, double cut, int type){
     ///////////////////////////////////////////////////////////////////
     // gen level info // had == plus
-    int blll=-1, bhhh=-1, lep1=-1, lep2=-1, nu1=-1, nu2=-1;
+    int blll=-1, bhhh=-1, ell=-1, ehh=-1, null=-1, nuhh=-1;
     unsigned int jsize = jets.size();
-    for(unsigned int nj1=0; nj1< jsize; nj1++) if(btrue[nj1]==-5) bhhh=nj1; else if(btrue[nj1]==5) blll=nj1; 
+    for(unsigned int nj1=0; nj1< jsize; nj1++) if(btrue[nj1]==5) bhhh=nj1; else if(btrue[nj1]==-5) blll=nj1; 
     int counttruth =-1; 
     // I have 2 isolated leptons, I assume are the two leading
-    for(unsigned int nj1=0; nj1< 2; nj1++) {if(leptons.at(nj1).user_index() > 0) lep1=nj1; else lep2=nj1;  }
-    for(unsigned int nj1=0; nj1< 2; nj1++) {if(neutrinos.at(nj1).user_index() > 0) nu1=nj1; else  nu2=nj1;  }
+    for(unsigned int nj1=0; nj1< leptons.size(); nj1++) {
+        //cout<<leptons.at(nj1).user_index()<<endl;
+        if(leptons.at(nj1).user_index() > 0) ell=nj1; 
+        else if(leptons.at(nj1).user_index() < 0) ehh=nj1;  
+    } //cout<<" "<<endl;
+    for(unsigned int nj1=0; nj1< neutrinos.size(); nj1++) {if(neutrinos.at(nj1).user_index() > 0) nuhh=nj1; else  null=nj1;  }
     //cout<<wj.size()<<" "<<jsize<<" "<<blll<<" "<<bhhh<<" "<<endl;  
     PseudoJet lepTtrue, hadTtrue;
-    if(blll!=-1 && bhhh!=-1 && lep1!=-1 && lep2!=-1 && nu1!=-1 && nu2!=-1){ 
-        // cout<<jsize<<endl;
+    if(blll!=-1 && bhhh!=-1 && ell!=-1 && ehh!=-1 && null!=-1 && nuhh!=-1){ 
+        //cout<<" lep "<< blll<<" "<< leptons.at(ell).user_index() <<" "<<neutrinos.at(null).user_index()<<" "<<
+        //      " had "<< bhhh<<" "<< leptons.at(ehh).user_index() <<" "<<neutrinos.at(nuhh).user_index()<<" "<<endl;
         //cout<<wj[0]<<" "<<wj[1]<<" "<<blll<<" "<<bhhh<<" "<<endl;  
-        lepTtrue = leptons.at(lep1) + neutrinos.at(nu2) + jets.at(blll);
-        hadTtrue = leptons.at(lep2) + neutrinos.at(nu1) + jets.at(bhhh);
+        lepTtrue = leptons.at(ell) + neutrinos.at(null) + jets.at(blll);
+        hadTtrue = leptons.at(ehh) + neutrinos.at(nuhh) + jets.at(bhhh);
         //
         //if(ifolder==0) counttruth==1; // full
         //else if(hadTtrue.m() < genmasshad && hadTtrue.m() > genmasshadmin && lepTtrue.m() < genmasslep && lepTtrue.m() > genmasslepmin) counttruth=1; // onon

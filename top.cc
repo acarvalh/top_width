@@ -1,5 +1,6 @@
 //////////////////
 // to run:
+// source /afs/cern.ch/sw/lcg/app/releases/ROOT/5.32.00/x86_64-slc5-gcc43-opt/root/bin/thisroot.sh
 // make HH_VBF
 // ./HH_VBF
 /////////////////
@@ -43,11 +44,13 @@ int main() {
     //////////////////////////////////////////////////
     // input
     // we are going to have only four samples, with 180 GeV mt selection, merge them and separate
-    string path[1]={"/afs/cern.ch/work/a/acarvalh/tt_fulylep/ttbar_gen180/"};
-    string sample[5] = {"ttOnOnLep180","ttOnOffLep180","ttOffOnLep180","ttOffOffLep180","ttFullLep180"};// the last one have 50k    
+    string path[1]={"/afs/cern.ch/work/a/acarvalh/tt_fulylep/"};
+    string sample[5] = {"OnOnVary","OnOffVary","OffOnVary","OffOffVary","FullVary"};// folder
+    string fileGam[13] = {"/Wt_0","/Wt_1","/Wt_2","/Wt_3","/Wt_4","/Wt_5","/Wt_6","/Wt_7","/Wt_8","/Wt_9","/Wt_10","/Wt_11","/Wt_12"}; // width
+    double Gamma[13] ={0.6, 0.8, 1.01, 1.20, 1.40, 1.608, 1.8, 2, 2.2, 2.4, 2.6, 2.8, 3};
     string label[5] = {"OnOn","OnOff","OffOn","OffOff","Full"}; 
     if(!showering)data = ".lhe.decayed"; else data = ".lhe.shower";
-    double cut[10] = {180,185, 190, 195, 200, 210, 220, 230, 240, 250};
+    double cut[4] = {180,250,300,350};//180,185, 190, 195, 200, 210, 220, 230, 240, 250};
     /////////////////////////////////////////////////////////
     // information I want to make a table
     //
@@ -55,23 +58,31 @@ int main() {
     // just need net_eff / sample / mtdeff ===> vector
     //vector< vector< vector< double > > > finaleventsN; // save nevents / sample / type / mtdeff
     //vector<vector< double > > finaleventsfrom[4]; // trace / sample / type / mtdeff
-    vector< vector<  vector<double> > > finaleventsN(10, vector< vector<double> >(5, vector<double>(4))); // trace / sample / type / mtdeff
-    vector< vector<  vector<int> > > finaleventsfrom(10, vector< vector<int> >(5, vector<int>(4))); // trace / sample / type / mtdeff
+    vector< vector< vector<  vector<double> > > > finaleventsN(13, 
+                                                        vector< vector< vector<double> > > (10, 
+                                                                                            vector< vector<double> >(5, 
+                                                                                                                     vector<double>(4) ) ) ); // trace / sample / type / mtdeff
+    vector< vector< vector<  vector<int> > > > finaleventsfrom(13,
+                                                               vector< vector< vector<int> > > (10, 
+                                                                                                   vector< vector<int> >(5, 
+                                                                                                                            vector<int>(4) ) ) ); // trace / sample / type / mtdeff                                                               
     /////////////////////////////////////////////////////////
     // gen ifo deffinitions
     //
     // had/lep | plus/minus
     // fill if: 0 = (< mt1,mt2) | 1 = (< m1 , >m2) | 2 = (>m1 , m2<) | 3 = (m1,m2 >) 
     /////////////////////////////////////////////////////////
-    double CX[5] = {22.67,1.103,1.103,100, 24.92};// 1,1,1,1,1};//
+    double CX[5] = {25.8,1.177,1.176,0.0572, 24.92};// 1,1,1,1,1};// Fix CX by Gamma
     double nevents =100000, lumi = 50;// /fb
     //////////////////////////////////////////////////////////////////////////////////
     // to each cut deffinition and each one of the four region deffintions I pass by the four files and then save 
-    for(unsigned int mtdef=0; mtdef<10; mtdef++) // for gen cut deffinition
-      for(unsigned int type=0; type<4;type++) { 
+    for(unsigned int files=5; files<6; files++) // 13 width
+    for(unsigned int mtdef=0; mtdef<4; mtdef++) // 10 for gen cut deffinition
+      for(unsigned int type=0; type<4;type++) { // OnOn ... 
           double finalevents0[4]; // to be obsolete
-          for(unsigned int isample=0; isample<5;isample++) {
-             decla(0);
+          decla(0);
+           for(unsigned int isample=0; isample<4;isample++) { // ononFile .... 
+             
              double finalevents=0; // counter for net eff
              ///////////////////////////////////////////////
              double weight; 
@@ -79,7 +90,7 @@ int main() {
                {if(isample==i && nicepic) weight = CX[i]*lumi/nevents;   
                    else if(isample==i && !nicepic) weight = lumi/nevents;} // this one makes raw efficiencies
              //////////////////////////////////////////////
-             file = path[0] + sample[isample]+ data;
+             file = path[0] + sample[isample] + fileGam[files] + data;
              cout<<"\n\n reading file = "<<file<<endl;
              ifstream in1; in1.open(file.c_str());
              for(unsigned int ievent=0;ievent<100000;ievent++){ // read and process for each event 
@@ -128,26 +139,27 @@ int main() {
               // intermediate check
               finalevents0[isample] = finalevents;
               double neventslumi = (finalevents0[0]*CX[0]+finalevents0[1]*CX[1]+finalevents0[2]*CX[2]+finalevents0[3]*CX[3])*1000*lumi/nevents;
-              double neventsa9ll = (CX[0]+CX[1]+CX[2])*1000*lumi;
-              if(!nicepic)cout<<" raw nevents passed = "<< finalevents0[isample]<<" sample "<<isample<<endl;               
+              //double neventsa9ll = (CX[0]+CX[1]+CX[2])*1000*lumi;
+              cout<<" raw nevents passed = "<< finalevents0[isample]<<" sample "<<isample<<endl;               
               cout<<"\n\n closing file = "<<file<<endl; //cout<<" "<<endl;
               cout<<"mt cut ="<< cut[mtdef]<<endl;   
               // save to table
               int tablecounter=0;
-              finaleventsN[mtdef][isample][type] = finalevents; // raw events always! 
+              finaleventsN[files][mtdef][isample][type] = finalevents; // raw events always! 
               //finaleventsfrom[mtdef][isample][type] = isample + type; //finaleventsfrom.at(tablecounter).push_back(type);
               } // close for sample
-              save_hist(1,mtdef,type); // hitogram / type / mtdef ==> after pass by the 4 samples
-        } // close fo type and mtcut
+              save_hist(files,mtdef,type); // hitogram / type / mtdef ==> after pass by the 4 samples
+        } // close fo type and mtcut and gam
         //////////////////////////////////////////////////////////////////////////
         // make the table 
         ofstream NetEffMtGen;
         NetEffMtGen.open("NetEffMtGen.txt"); // file to save
-        cout<<"mtcut type sample NEtEv"<<endl;
-        NetEffMtGen<<"mtcut type sample NEtEv"<<endl;
-        for(unsigned int mtdef=0; mtdef<10; mtdef++) for(unsigned int type=0; type<2;type++) for(unsigned int isample=0; isample<5;isample++) {
-        cout<<cut[mtdef]<<" " <<label[type]<<" "<<sample[isample]<<" "<<finaleventsN[mtdef][isample][type]<<endl;
-        NetEffMtGen<< cut[mtdef]<<" " << type <<" "<< isample<<" "<<finaleventsN[mtdef][isample][type]<<endl;
+        cout<<" Gamm mtcut type sample NEtEv"<<endl;
+        NetEffMtGen<<"Gamm mtcut type sample NEtEv"<<endl;
+        for(unsigned int files=5; files<6; files++)
+            for(unsigned int mtdef=0; mtdef<4; mtdef++) for(unsigned int type=0; type<4;type++) for(unsigned int isample=0; isample<4;isample++) {
+                cout<<        Gamma[files]<<" "<< cut[mtdef]<<" " <<label[type]<<" "<<sample[isample]<<" "<< finaleventsN[files][mtdef][isample][type]<<endl;
+                NetEffMtGen<< Gamma[files]<<" "<< cut[mtdef]<<" " << type      <<" "<<        isample<<" "<< finaleventsN[files][mtdef][isample][type]<<endl;
         //cout<<" "<<endl;
         //cout<<" "<<mtdef<<" "<< type<<" "<<isample<<" "<<finaleventsfrom[mtdef][isample][type]<<endl;
         } //

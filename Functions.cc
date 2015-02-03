@@ -63,63 +63,56 @@ bool fullylep(int & bh, int & bl,vector<PseudoJet> jets, vector<PseudoJet> lepto
     int counttruth =-1; 
     // I have 2 isolated leptons, I assume are the two leading
     for(unsigned int nj1=0; nj1< leptons.size(); nj1++) {
-        //cout<<leptons.at(nj1).user_index()<<endl;
         if(leptons.at(nj1).user_index() > 0) ell=nj1; 
         else if(leptons.at(nj1).user_index() < 0) ehh=nj1;  
-    } //cout<<" "<<endl;
+    }
     for(unsigned int nj1=0; nj1< neutrinos.size(); nj1++) {if(neutrinos.at(nj1).user_index() > 0) nuhh=nj1; else  null=nj1;  }
-    //cout<<wj.size()<<" "<<jsize<<" "<<blll<<" "<<bhhh<<" "<<endl;  
     PseudoJet lepTtrue, hadTtrue;
+    bool passGencut = false;
     if(blll!=-1 && bhhh!=-1 && ell!=-1 && ehh!=-1 && null!=-1 && nuhh!=-1){ 
-        //cout<<" lep "<< blll<<" "<< leptons.at(ell).user_index() <<" "<<neutrinos.at(null).user_index()<<" "<<
-        //      " had "<< bhhh<<" "<< leptons.at(ehh).user_index() <<" "<<neutrinos.at(nuhh).user_index()<<" "<<endl;
-        //cout<<wj[0]<<" "<<wj[1]<<" "<<blll<<" "<<bhhh<<" "<<endl;  
         lepTtrue = leptons.at(ell) + neutrinos.at(null) + jets.at(blll);
         hadTtrue = leptons.at(ehh) + neutrinos.at(nuhh) + jets.at(bhhh);
-        //
-        //if(ifolder==0) counttruth==1; // full
-        //else if(hadTtrue.m() < genmasshad && hadTtrue.m() > genmasshadmin && lepTtrue.m() < genmasslep && lepTtrue.m() > genmasslepmin) counttruth=1; // onon
-        //else if(ifolder==2 && hadTtrue.m() < genmass && lepTtrue.m() > genmass) counttruth=1; // onoff
-        //else if(ifolder==3 && hadTtrue.m() > genmass && lepTtrue.m() < genmass) counttruth=1; // offon
-        //else if(ifolder==4 && hadTtrue.m() > genmass && lepTtrue.m() > genmass) counttruth=1; // offoff
-        
-        // }
-        //int truth=-10;
         // fill if: 0 = (< mt1,mt2) | 1 = (< m1 , >m2) | 2 = (>m1 , m2<) | 3 = (m1,m2 >)
         if(hadTtrue.m()<cut && lepTtrue.m() < cut) counttruth=0;
-          else if(hadTtrue.m()<cut && lepTtrue.m()>=cut) counttruth=1;
-          else if(hadTtrue.m()>=cut && lepTtrue.m()<cut) counttruth=2;            
-          else if(hadTtrue.m()>=cut && lepTtrue.m()>=cut) counttruth=3;
-        //cout<<"here 3 "<<cut<<endl;
-        //if (counttruth==2 || counttruth==3)cout<<"here 3 "<<counttruth<<endl;
-        //
-        if(1>0
-           && counttruth==type
-           ) {    
-        //truth=1;
-            //cout<<jsize<<endl;
-            //cout<<(jets.at(bhhh)+jets.at(blll)).m()<<endl;
-            //cout<<counttruth<<endl;
-            //
-        Njets_passing_kLooseID->Fill(jsize,weight);
-        genmbb->Fill((jets.at(bhhh)+jets.at(blll)).m(),weight);        
-        leptop->Fill(lepTtrue.m(),weight);
-        hadtop->Fill(hadTtrue.m(),weight);
-        genbhad->Fill(jets.at(bhhh).pt(),weight);
-        genblep->Fill(jets.at(blll).pt(),weight);
-        genbhadeta->Fill(jets.at(bhhh).eta(),weight);
-        genblepeta->Fill(jets.at(blll).eta(),weight);
-            return true;
-        } else return false; // close if cut
-    } else return false;
-    //////////////////////////////  
-    //cout<<cut<<" "<<type<<endl;
-    //double hadtop[10]={1,1,1,1, //hadt.m(),hadt.pt(),hadt.eta(),hadt.phi(),
-    //    1,1,1,1, //hadW.m(),hadW.pt(),hadW.eta(),hadW.phi(),
-    //    1,1}; //truth,detabb};
-    //for(unsigned i=0;i<10;i++) basicHadtop[i]->Fill(hadtop[i],weight);
-    //cout<<cut<<" "<<type<<endl;
-    
+        else if(hadTtrue.m()<cut && lepTtrue.m()>=cut) counttruth=1;
+        else if(hadTtrue.m()>=cut && lepTtrue.m()<cut) counttruth=2;            
+        else if(hadTtrue.m()>=cut && lepTtrue.m()>=cut) counttruth=3;
+        if(counttruth==type && jets.at(blll).pt() > bjetpt && jets.at(bhhh).pt() > bjetpt && (jets.at(blll)+jets.at(bhhh)).m() > mbblow ) {    
+          Njets_passing_kLooseID->Fill(jsize,weight);
+          genmbb->Fill((jets.at(bhhh)+jets.at(blll)).m(),weight);        
+          leptop->Fill(lepTtrue.m(),weight);
+          hadtop->Fill(hadTtrue.m(),weight);
+          genbhad->Fill(jets.at(bhhh).pt(),weight);
+          genblep->Fill(jets.at(blll).pt(),weight);
+          genbhadeta->Fill(jets.at(bhhh).eta(),weight);
+          genblepeta->Fill(jets.at(blll).eta(),weight);
+          passGencut = true;
+        }; // close if cut
+    };     
+    /////////////////////////////////////////////////////////////////////////
+    // start the analysis --- if passed the gencut
+    /////////////////////////////////////////////////////////////////////////
+    if(leptons.size()>1){
+    // compute met
+    met = (neutrinos[0]+neutrinos[1]).pt(); // fix to MET
+    // basic control plots + transverse mass
+    double vectorLep[6] = {leptons[0].pt(),leptons[0].eta(),leptons[1].pt(),leptons[1].eta(),
+                           met , leptons[0].eta() - leptons[1].eta() };
+    for(unsigned i=0;i<6;i++) basicLeptons[i]->Fill(vectorLep[i],weight);
+    // tranverse mass
+        
+    // we do not reco the tops --- fill with other vectors with zero
+    double leptop[13]={170,0,0,0, //lept.m(),lept.pt(),lept.eta(),lept.phi(),
+        90,0,0,0, //lepW.m(),lepW.pt(),lepW.eta(),lepW.phi(),
+        0,0,0,0,0 //pnuzerror,truth,mterror,wmt,tmt};
+    };
+    for(unsigned i=1;i<13;i++) basicLeptop[i]->Fill(leptop[i],weight);
+    double hadtop[10]={170,0,0,0, //hadt.m(),hadt.pt(),hadt.eta(),hadt.phi(),
+        0,0,0,0,//hadW.m(),hadW.pt(),hadW.eta(),hadW.phi(),
+        0,0};//truth,0}; ---> do we need truth?
+    for(unsigned i=0;i<10;i++) basicHadtop[i]->Fill(hadtop[i],weight);   
+    }; // close if two leptons
+    return passGencut;
 } //close fullylep    
 /////////////////////////////////////////////////////////////////
 bool recolept2step(int & bh, int & bl,vector<PseudoJet> jets, vector<PseudoJet> leptons,vector<PseudoJet> neutrinos, vector<int> btag, vector<int> btrue, double met, double weight, double cut, int type){
@@ -621,7 +614,8 @@ void isbtagged(vector<PseudoJet> jets, vector<int> & btag, vector<int> & bmistag
 // save the histos
 int save_hist(int isample,int reco,int sample){
     const char* Mass;
-    Mass = Form("Control_mtdef_%d_type_%d_.root",reco,sample); cout<<sample<<endl;
+    Mass = Form("Control_mtdef_%d_type_%d_Gamm_%d.root",reco,sample,isample); 
+    cout<<" saved "<< Form("Control_mtdef_%d_type_%d_Gamm_%d.root",reco,sample,isample)<<endl;
     TFile f1(Mass, "recreate");
     f1.cd();
     Njets_passing_kLooseID->Write();
@@ -633,13 +627,10 @@ int save_hist(int isample,int reco,int sample){
     genblep->Write();
     genbhadeta->Write();
     genblepeta->Write();
-    //basicLeptons[0]->Write();
-    //basicLeptons[1]->Write();
-    //basicLeptons[2]->Write();
-    //for(unsigned i=0;i<10;i++) basicHadtop[i]->Write();
-    //for(unsigned i=0;i<19;i++) basicLeptop[i]->Write();
+    for(unsigned i=0;i<6;i++) basicLeptons[i]->Write();
+    for(unsigned i=0;i<10;i++) basicHadtop[i]->Write();
+    for(unsigned i=0;i<19;i++) basicLeptop[i]->Write();
     f1.Close();
-    //
     Njets_passing_kLooseID->Reset();
     btagselected->Reset();
     genmbb->Reset();
@@ -649,15 +640,15 @@ int save_hist(int isample,int reco,int sample){
     genblep->Reset();
     genbhadeta->Reset();
     genblepeta->Reset();
-    //basicLeptons.clear();
-    //basicHadtop.clear();
-    //basicLeptop.clear();
+    basicLeptons.clear();
+    basicHadtop.clear();
+    basicLeptop.clear();
     //  basicLeptons[0]->Reset();
     //  basicLeptons[1]->Reset();
     //  basicLeptons[2]->Reset();
     //  for(unsigned i=0;i<10;i++) basicHadtop[i]->Reset();
     //  for(unsigned i=0;i<13;i++) basicLeptop[i]->Reset();
-    cout<<sample<<endl;
+
     return 0;
 }
 /////////////////////////////////////////////////////////////////////////
@@ -772,12 +763,33 @@ int decla(int mass){
     E1histeta->GetYaxis()->SetTitle("Events/ 2 GeV");
     E1histeta->GetXaxis()->SetTitle("#eta_{lepton1} (GeV)");
     basicLeptons.push_back (E1histeta); 
+
+    TH1D *E2histpt = new TH1D("E2histpt",  
+                              label, 
+                              50, 0, 200);
+    E2histpt->GetYaxis()->SetTitle("Events/ 2 GeV");
+    E2histpt->GetXaxis()->SetTitle("lepton 2 P_T (GeV)");
+    basicLeptons.push_back (E2histpt); 
+    
+    TH1D *E2histeta = new TH1D("E2histeta",  
+                               label, 
+                               30, -6, 6);
+    E2histeta->GetYaxis()->SetTitle("Events/ 2 GeV");
+    E2histeta->GetXaxis()->SetTitle("#eta_{lepton2} (GeV)");
+    basicLeptons.push_back (E2histeta); 
     
     TH1D *MetMass = new TH1D("MetMass_ct4",  
                              label, 
                              50, 0, 300);
     MetMass->GetXaxis()->SetTitle("MET (GeV)");
     basicLeptons.push_back (MetMass);
+
+    TH1D *DetaLep = new TH1D("DetaLep_ct4",  
+                             label, 
+                             50, -6, 6);
+    DetaLep->GetXaxis()->SetTitle("#Delta #eta (ll)");
+    basicLeptons.push_back (DetaLep);
+    
     ///////////////////////////////////////////////////////////////////////////
     // for hadronic tops
     TH1D *H1hist = new TH1D("H1hist",  

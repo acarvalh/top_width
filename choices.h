@@ -3,7 +3,7 @@
 bool semilep=false;
 bool showering=false;
 bool bkg = false;
-bool nicepic = false; // if false makes raw efficiencies, if true just make the plots
+bool nicepic = true; // if false makes raw efficiencies, if true just make the plots
 //
 /////////////////////////////////
 // sample

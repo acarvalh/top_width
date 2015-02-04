@@ -99,7 +99,7 @@ TLegend *leg = new TLegend(0.5,0.60,0.99,0.99);
    leg->SetLineWidth(1);
    leg->SetFillColor(0);
 //
- int nplots =15;
+ int nplots =21;
  const char* namplots[nplots] = {
            "njets_passing_kLooseID_ct4.png",
 	   "btagselected.png",
@@ -116,8 +116,15 @@ TLegend *leg = new TLegend(0.5,0.60,0.99,0.99);
      "E1histeta.png",  
      "E2histpt.png",  
      "E2histeta.png",  
-     "DetaLep_ct4.png",     
-     "MetMass_ct4.png"
+     //"DetaLep_ct4.png",     
+     "MetMass_ct4.png",
+     "llMass.png",
+     "jjMass.png",
+     "jbleadMass.png",
+     "jbsubleadMass.png",
+     "jbleadXMass.png",
+     "jbsubXleadMass.png",
+      "truth.png"
      /*     "wmt.png",
       "tmt.png",
       "detalb.png",
@@ -136,7 +143,7 @@ TLegend *leg = new TLegend(0.5,0.60,0.99,0.99);
       "HW1histpt.png",
       "HW1histeta.png",
       "HW1histphi.png",
-      "truth.png",
+
       "detabb.png",
       //
       "H1LepThist.png",
@@ -172,8 +179,15 @@ for(int i=0;i<maxtodo;i++){
     TH1D* plots[i][10] = (TH1D* ) file[i]->Get("E1histeta;1");   
     TH1D* plots[i][11] = (TH1D* ) file[i]->Get("E2histpt;1");   
     TH1D* plots[i][12] = (TH1D* ) file[i]->Get("E2histeta;1");   
-    TH1D* plots[i][13] = (TH1D* ) file[i]->Get("DetaLep_ct4;1");     
-    TH1D* plots[i][14] = (TH1D* ) file[i]->Get("MetMass_ct4;1"); 
+    //TH1D* plots[i][13] = (TH1D* ) file[i]->Get("DetaLep_ct4;1");     
+    TH1D* plots[i][13] = (TH1D* ) file[i]->Get("MetMass_ct4;1"); 
+    TH1D* plots[i][14] = (TH1D* ) file[i]->Get("llMass;1");     
+    TH1D* plots[i][15] = (TH1D* ) file[i]->Get("jjMass;1"); 
+    TH1D* plots[i][16] = (TH1D* ) file[i]->Get("jbleadMass;1"); 
+    TH1D* plots[i][17] = (TH1D* ) file[i]->Get("jbsubleadMass;1"); 
+    TH1D* plots[i][18] = (TH1D* ) file[i]->Get("jbleadXMass;1"); 
+    TH1D* plots[i][19] = (TH1D* ) file[i]->Get("jbsubleadXMass;1");  
+    TH1D* plots[i][20] = (TH1D* ) file[i]->Get("truthMBplot;1"); 
     /*
 
      TH1D* plots[i][5] = (TH1D* ) file[i]->Get("H1hist;1"); 
@@ -240,7 +254,7 @@ TCanvas* PT_HAT = new TCanvas();
 int max=nmass;
 double high[nplots]={2,1.5,1.2,1.1,10.5,
     10.5,50.7,50.7,30.7,1.5,
-    1.2,1.2,1.2,1.5,1.5};//,
+    10.2,10.2,10.2,10.5,10.5};//,
              //        1.2,1.2,1.2,1.5,1.5,
 		  //   1.5,1.2,1.7,1.7,1.5,
 		  //   1.2,1.2,1.2,1.5,1.5,

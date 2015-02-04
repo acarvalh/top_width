@@ -50,7 +50,7 @@ int main() {
     double Gamma[13] ={0.6, 0.8, 1.01, 1.20, 1.40, 1.608, 1.8, 2, 2.2, 2.4, 2.6, 2.8, 3};
     string label[5] = {"OnOn","OnOff","OffOn","OffOff","Full"}; 
     if(!showering)data = ".lhe.decayed"; else data = ".lhe.shower";
-    double cut[4] = {180,250,300,350};//180,185, 190, 195, 200, 210, 220, 230, 240, 250};
+    double cut[4] = {190,250,300,350};//180,185, 190, 195, 200, 210, 220, 230, 240, 250};
     /////////////////////////////////////////////////////////
     // information I want to make a table
     //
@@ -77,7 +77,7 @@ int main() {
     //////////////////////////////////////////////////////////////////////////////////
     // to each cut deffinition and each one of the four region deffintions I pass by the four files and then save 
     for(unsigned int files=5; files<6; files++) // 13 width
-    for(unsigned int mtdef=0; mtdef<4; mtdef++) // 10 for gen cut deffinition
+    for(unsigned int mtdef=0; mtdef<1; mtdef++) // 10 for gen cut deffinition
       for(unsigned int type=0; type<4;type++) { // OnOn ... 
           double finalevents0[4]; // to be obsolete
           decla(0);
@@ -127,8 +127,9 @@ int main() {
                   int numbb=0; for(unsigned i =0; i< btrue.size() ; i++ ) if(abs(btrue[i])==5) numbb++; // "b--taggable gen-b's
                   if(semilep && nlep>0 && njets>3 && numbb >1){ 
                     // NEED TO RE-IMPLEMENT THE MET cut!!!!
-                    if(lepcuts && reco == 0) hadtopreco=recohadt(bh,bl,jets,leptons,neutrinos,btag,btrue,met,weight,cut[mtdef],type); // reco by had
-                    if(lepcuts && reco == 1) lepwreco = recolept2step(bh,bl,jets,leptons,neutrinos,btag,btrue,met,weight,cut[mtdef],type); // by lep
+                    //if(lepcuts && reco == 0) hadtopreco=recohadt(bh,bl,jets,leptons,neutrinos,btag,btrue,met,weight,cut[mtdef],type); // reco by had
+                    //if(lepcuts && reco == 1) lepwreco = recolept2step(bh,bl,jets,leptons,neutrinos,btag,btrue,met,weight,cut[mtdef],type); // by lep
+                      cout<<"ops"<<endl;
                     }else if(!semilep && nlep>1 && njets>1 && numbb >1){ // close if semilep
                       hadtopreco = fullylep(bh,bl,jets,leptons,neutrinos,btag,btrue,met,weight,cut[mtdef],type); 
                         if(hadtopreco)finalevents++;// else if(type ==0 && isample==0) cout<<"ops"<<endl; 

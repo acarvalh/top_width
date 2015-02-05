@@ -72,12 +72,12 @@ bool fullylep(int & bh, int & bl,vector<PseudoJet> jets, vector<PseudoJet> lepto
       double mll =  (leptons.at(0) + leptons.at(1)).m();
       double mjj = (jets.at(0) + jets.at(1)).m();
       //
-      double mbl1 = (leptons.at(0) + jets.at(0)).m(); 
-      double mbl2 = (leptons.at(1) + jets.at(1)).m();    
-      double mbl1b = (leptons.at(1) + jets.at(0)).m();
-      double mbl2b = (leptons.at(0) + jets.at(1)).m();
+      double mbl1 = (leptons.at(ehh) + jets.at(0)).m(); 
+      double mbl2 = (leptons.at(ell) + jets.at(1)).m();    
+      double mbl1b = (leptons.at(ell) + jets.at(0)).m();
+      double mbl2b = (leptons.at(ehh) + jets.at(1)).m();
       // minimize OnOn contamination --- pair the leading fermion with  
-      double mblLead = TMath::Min(mbl1, mbl2b);
+      double mblLead = TMath::Min(mbl2, mbl1b);
       double mblSub=-10; int truthMB=-2;
         if(mblLead == mbl1) {mblSub = mbl2; if( blll == ell ) {truthMB =1;} else truthMB =0; } 
         else if(mblLead == mbl1b) {mblSub = mbl2b; if( blll != ell ) {truthMB =1;} else truthMB =0; } 
@@ -89,14 +89,32 @@ bool fullylep(int & bh, int & bl,vector<PseudoJet> jets, vector<PseudoJet> lepto
       // minimize the balance instead
         double  mblBal1 , mblBal2; 
       //mblLead = TMath::Min( Abs( mbl1 - mbl2) , Abs( mbl2b - mbl1b ));
-        if ( abs( mbl1 - mbl2) < abs( mbl2b - mbl1b )) {mblBal1 = mbl1 ; mblBal2=mbl2; if( blll == ell ) {truthMB =1;} else truthMB =0; } 
-        else {mblBal1 = mbl1 ; mblBal2=mbl2; if( blll != ell ) {truthMB =1;} else truthMB =0; } 
-      /////////////////////////////////////////////
-      double vectorLep[12] = {leptons[0].pt(),leptons[0].eta(),leptons[1].pt(),leptons[1].eta(),
+      if ( abs( mbl1 - mbl2) < abs( mbl2b - mbl1b )) {
+          mblBal1 = mbl1 ; mblBal2=mbl2; 
+          if( blll == ell ) {truthMB =1;} else truthMB =0; 
+      }  else { // for l-j pairing
+          mblBal1 = mbl1b ; mblBal2=mbl2b; 
+          if( blll != ell ) {truthMB =1;} else truthMB =0; 
+      } // close l-j pairing 
+        //mblLead= (leptons.at(ell) + jets.at(blll)).m(); 
+        //mblSub= (leptons.at(ehh) + jets.at(bhhh)).m(); 
+        /////////////////////////////////////////////
+      int typeReco = -1;  // 0 = onon ; 1 = onoff + offon ; 2 = offoff
+      int typeRecoTruth = -1; // 0 = onon +true ; 1 = onon+false ; 3 = onoff + true ; 4 = onoff + false ; 6 = offoff + true ; 7 = offoff + false
+      if( mblBal1 > mblcut && mblBal2 > mblcut) 
+        {typeReco = 2; if(truthMB ==1) {typeRecoTruth =6;} else typeRecoTruth =7;  }
+      else if( (mblBal1 < mblcut && mblBal2 > mblcut) || (mblBal1 > mblcut && mblBal2 < mblcut)  ) 
+        {typeReco = 1; if(truthMB ==1) {typeRecoTruth =3;} else typeRecoTruth =4;  }  
+      else  if(mblBal1 < mblcut && mblBal2 < mblcut) 
+        {typeReco = 0; if(truthMB ==1) {typeRecoTruth =0;} else typeRecoTruth =1;  } 
+      else cout << "oups !!" <<endl;
+      //cout << "oups !!"<< typeRecoTruth <<endl;
+        ////////////////////////////////////////////
+      double vectorLep[13] = {leptons[0].pt(),leptons[0].eta(),leptons[1].pt(),leptons[1].eta(),
                            met , 
                            mll , mjj ,
-                           mblLead , mblSub , mblBal1 , mblBal2 , truthMB };
-      for(unsigned i=0;i<12;i++) basicLeptons[i]->Fill(vectorLep[i],weight);
+                           mblLead , mblSub , mblBal1 , mblBal2 , truthMB , typeRecoTruth};
+      for(unsigned i=0;i<13;i++) basicLeptons[i]->Fill(vectorLep[i],weight);
       // tranverse mass --- total transverse mass
       // we do not reco the tops --- fill with other vectors with zero
       double leptop[13]={170,0,0,0, //lept.m(),lept.pt(),lept.eta(),lept.phi(),
@@ -226,7 +244,7 @@ int save_hist(int isample,int reco,int sample){
     genblep->Write();
     genbhadeta->Write();
     genblepeta->Write();
-    for(unsigned i=0;i<12;i++) basicLeptons[i]->Write();
+    for(unsigned i=0;i<13;i++) basicLeptons[i]->Write();
     for(unsigned i=0;i<10;i++) basicHadtop[i]->Write();
     for(unsigned i=0;i<19;i++) basicLeptop[i]->Write();
     f1.Close();
@@ -430,6 +448,13 @@ int decla(int mass){
                                     5, -1.5, 4.5);
     truthMBplot->GetXaxis()->SetTitle("lepton-jet truth");
     basicLeptons.push_back (truthMBplot);      
+
+    TH1D *typetruthMBplot = new TH1D("typetruthMBplot",  
+                                 label, 
+                                 11, -1.5, 10.5);
+    typetruthMBplot->GetYaxis()->SetTitle("% from selected events");
+    typetruthMBplot->GetXaxis()->SetTitle("lepton-jet truth");
+    basicLeptons.push_back (typetruthMBplot);      
     
     ///////////////////////////////////////////////////////////////////////////
     // for hadronic tops

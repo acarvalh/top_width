@@ -88,9 +88,9 @@ const char* lege[nmass]={"m_{t} = 190 GeV OnOn","m_{t} = 190 GeV OnOff","m_{t} =
                          "m_{t} = 300 GeV OnOn","m_{t} = 300 GeV OnOff","m_{t} = 300 GeV OffOn","m_{t} = 300 GeV OffOff",
                          "m_{t} = 350 GeV OnOn","m_{t} = 350 GeV OnOff","m_{t} = 350 GeV OffOn","m_{t} = 350 GeV OffOff"
                           };
-int maxtodo=3;
-    int todo[maxtodo]={0,1,2};//14,17,18};//13 ,2 ,1 };//27,28,34, // 0,21,16,13, 9 ,5 ,
-    double masses[maxtodo] = {0,1,2};//,23,1,1,1,1,1}; //8,0,1,2,3,4,5,6,7,9};//,6,7,8,9};//,
+int maxtodo=4;
+    int todo[maxtodo]={0,1,2,3};//14,17,18};//13 ,2 ,1 };//27,28,34, // 0,21,16,13, 9 ,5 ,
+    double masses[maxtodo] = {0,1,2,3};//,23,1,1,1,1,1}; //8,0,1,2,3,4,5,6,7,9};//,6,7,8,9};//,
 //
 TLegend *leg = new TLegend(0.5,0.60,0.99,0.99);
    leg->SetTextSize(0.04146853);
@@ -99,7 +99,7 @@ TLegend *leg = new TLegend(0.5,0.60,0.99,0.99);
    leg->SetLineWidth(1);
    leg->SetFillColor(0);
 //
- int nplots =21;
+ int nplots =22;
  const char* namplots[nplots] = {
            "njets_passing_kLooseID_ct4.png",
 	   "btagselected.png",
@@ -124,7 +124,8 @@ TLegend *leg = new TLegend(0.5,0.60,0.99,0.99);
      "jbsubleadMass.png",
      "jbleadXMass.png",
      "jbsubXleadMass.png",
-      "truth.png"
+      "truth.png",
+      "typetruth.png"
      /*     "wmt.png",
       "tmt.png",
       "detalb.png",
@@ -188,6 +189,7 @@ for(int i=0;i<maxtodo;i++){
     TH1D* plots[i][18] = (TH1D* ) file[i]->Get("jbleadXMass;1"); 
     TH1D* plots[i][19] = (TH1D* ) file[i]->Get("jbsubleadXMass;1");  
     TH1D* plots[i][20] = (TH1D* ) file[i]->Get("truthMBplot;1"); 
+    TH1D* plots[i][21] = (TH1D* ) file[i]->Get("typetruthMBplot;1"); 
     /*
 
      TH1D* plots[i][5] = (TH1D* ) file[i]->Get("H1hist;1"); 
@@ -254,7 +256,7 @@ TCanvas* PT_HAT = new TCanvas();
 int max=nmass;
 double high[nplots]={2,1.5,1.2,1.1,10.5,
     10.5,50.7,50.7,30.7,1.5,
-    10.2,10.2,10.2,10.5,50.5};//,
+    10.2,10.2,10.2,10.5,50.5, 50.5};//,
              //        1.2,1.2,1.2,1.5,1.5,
 		  //   1.5,1.2,1.7,1.7,1.5,
 		  //   1.2,1.2,1.2,1.5,1.5,
@@ -277,7 +279,8 @@ double high[nplots]={2,1.5,1.2,1.1,10.5,
           //else
         double norma; if(plots[j][i].Integral()>0) norma = 1./plots[j][i].Integral(); else norma=1;
            if (i>3) plots[j][i].Scale(norma);
-               if(i==20) PT_HAT->SetLogy(0); else PT_HAT->SetLogy(1); 
+               //if(i==20) PT_HAT->SetLogy(0); else 
+                   PT_HAT->SetLogy(1); 
            plots[j][i].SetMaximum(high[i]*plots[j][i].GetMaximum());
 		plots[j][i].Draw("Hist,same");
 	}

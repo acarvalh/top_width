@@ -17,11 +17,10 @@ double const genmasshadmin=0; // genmass
 double const genmasslep=2000; // genmass
 double const genmasslepmin=0; // genmass
 //
-double const jet_ptminvbf=0.0; // We cut on all jets below 50 GeV
-double const jet1_ptminvbf=0.0; // We cut on all jets below 50 GeV
-double const jet2_ptminvbf=0.0; // We cut on all jets below 50 Ge
 double const bjetpt = 30.0; // the gen-level cut does not accept mistag
 double const mbblow = 0.0; // the gen-level cut does not accept mistag
+// analysis cuts
+double const mblcut = 190;
 double const etab = 12.5;
 double const etal = 12.5;
 double const etaj=15;

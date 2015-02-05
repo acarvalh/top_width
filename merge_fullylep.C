@@ -83,14 +83,14 @@ const char* channel[nmass]={
     "Control_mtdef_3_type_2_Gamm_5.root", 
     "Control_mtdef_3_type_3_Gamm_5.root"
 };
-const char* lege[nmass]={"m_{t} = 180 GeV OnOn","m_{t} = 180 GeV OnOff","m_{t} = 180 GeV OffOn","m_{t} = 180 GeV OffOff",
+const char* lege[nmass]={"m_{t} = 190 GeV OnOn","m_{t} = 190 GeV OnOff","m_{t} = 190 GeV OffOn","m_{t} = 190 GeV OffOff",
                          "m_{t} = 250 GeV OnOn","m_{t} = 250 GeV OnOff","m_{t} = 250 GeV OffOn","m_{t} = 250 GeV OffOff",
                          "m_{t} = 300 GeV OnOn","m_{t} = 300 GeV OnOff","m_{t} = 300 GeV OffOn","m_{t} = 300 GeV OffOff",
                          "m_{t} = 350 GeV OnOn","m_{t} = 350 GeV OnOff","m_{t} = 350 GeV OffOn","m_{t} = 350 GeV OffOff"
                           };
-int maxtodo=4;
-    int todo[maxtodo]={0,1,2,3};//14,17,18};//13 ,2 ,1 };//27,28,34, // 0,21,16,13, 9 ,5 ,
-    double masses[maxtodo] = {0,1,2,3};//,23,1,1,1,1,1}; //8,0,1,2,3,4,5,6,7,9};//,6,7,8,9};//,
+int maxtodo=3;
+    int todo[maxtodo]={0,1,2};//14,17,18};//13 ,2 ,1 };//27,28,34, // 0,21,16,13, 9 ,5 ,
+    double masses[maxtodo] = {0,1,2};//,23,1,1,1,1,1}; //8,0,1,2,3,4,5,6,7,9};//,6,7,8,9};//,
 //
 TLegend *leg = new TLegend(0.5,0.60,0.99,0.99);
    leg->SetTextSize(0.04146853);
@@ -254,7 +254,7 @@ TCanvas* PT_HAT = new TCanvas();
 int max=nmass;
 double high[nplots]={2,1.5,1.2,1.1,10.5,
     10.5,50.7,50.7,30.7,1.5,
-    10.2,10.2,10.2,10.5,10.5};//,
+    10.2,10.2,10.2,10.5,50.5};//,
              //        1.2,1.2,1.2,1.5,1.5,
 		  //   1.5,1.2,1.7,1.7,1.5,
 		  //   1.2,1.2,1.2,1.5,1.5,
@@ -264,10 +264,9 @@ double high[nplots]={2,1.5,1.2,1.1,10.5,
       double fixnorm = 1.;///100000.;
   for(int i=0;i<nplots;i++) {
   //if(i==16 || i==4 || i==5 || i==6 || i==7  || i==12) PT_HAT->SetLogy(1); else 
-PT_HAT->SetLogy(1);
+
 	for(int j=0;j<maxtodo;j++) {
-        leg->AddEntry(plots[j][i],lege[todo[j]],"l");
-        }
+        leg->AddEntry(plots[j][i],lege[todo[j]],"l");}
         //double normalize0 = 1./plots[0][13].Integral();
 	//plots[0][i].Scale(norm[0]);
         //plots[0][i].Scale(fixnorm);
@@ -278,6 +277,7 @@ PT_HAT->SetLogy(1);
           //else
         double norma; if(plots[j][i].Integral()>0) norma = 1./plots[j][i].Integral(); else norma=1;
            if (i>3) plots[j][i].Scale(norma);
+               if(i==20) PT_HAT->SetLogy(0); else PT_HAT->SetLogy(1); 
            plots[j][i].SetMaximum(high[i]*plots[j][i].GetMaximum());
 		plots[j][i].Draw("Hist,same");
 	}

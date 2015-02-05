@@ -44,7 +44,8 @@ int main() {
     //////////////////////////////////////////////////
     // input
     // we are going to have only four samples, with 180 GeV mt selection, merge them and separate
-    string path[1]={"/afs/cern.ch/work/a/acarvalh/tt_fulylep/"};
+//    string path[1]={"/afs/cern.ch/work/a/acarvalh/tt_fulylep/"};
+    string path[1]={"/Users/Xanda/Documents/codes/git/top_width/mtdef/"};
     string sample[5] = {"OnOnVary","OnOffVary","OffOnVary","OffOffVary","FullVary"};// folder
     string fileGam[13] = {"/Wt_0","/Wt_1","/Wt_2","/Wt_3","/Wt_4","/Wt_5","/Wt_6","/Wt_7","/Wt_8","/Wt_9","/Wt_10","/Wt_11","/Wt_12"}; // width
     double Gamma[13] ={0.6, 0.8, 1.01, 1.20, 1.40, 1.608, 1.8, 2, 2.2, 2.4, 2.6, 2.8, 3};
@@ -81,7 +82,7 @@ int main() {
       for(unsigned int type=0; type<4;type++) { // OnOn ... 
           double finalevents0[4]; // to be obsolete
           decla(0);
-           for(unsigned int isample=0; isample<4;isample++) { // ononFile .... 
+           for(unsigned int isample=4; isample<5;isample++) { // ononFile .... 
              
              double finalevents=0; // counter for net eff
              ///////////////////////////////////////////////
@@ -158,7 +159,7 @@ int main() {
         cout<<" Gamm mtcut type sample NEtEv"<<endl;
         NetEffMtGen<<"Gamm mtcut type sample NEtEv"<<endl;
         for(unsigned int files=5; files<6; files++)
-            for(unsigned int mtdef=0; mtdef<4; mtdef++) for(unsigned int type=0; type<4;type++) for(unsigned int isample=0; isample<4;isample++) {
+            for(unsigned int mtdef=0; mtdef<1; mtdef++) for(unsigned int type=0; type<4;type++) for(unsigned int isample=4; isample<5;isample++) {
                 cout<<        Gamma[files]<<" "<< cut[mtdef]<<" " <<label[type]<<" "<<sample[isample]<<" "<< finaleventsN[files][mtdef][isample][type]<<endl;
                 NetEffMtGen<< Gamma[files]<<" "<< cut[mtdef]<<" " << type      <<" "<<        isample<<" "<< finaleventsN[files][mtdef][isample][type]<<endl;
         //cout<<" "<<endl;

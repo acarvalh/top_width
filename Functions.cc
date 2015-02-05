@@ -78,17 +78,24 @@ bool fullylep(int & bh, int & bl,vector<PseudoJet> jets, vector<PseudoJet> lepto
       double mbl2b = (leptons.at(0) + jets.at(1)).m();
       // minimize OnOn contamination --- pair the leading fermion with  
       double mblLead = TMath::Min(mbl1, mbl2b);
-      double mblSub; int truthMB=-2;
-        if(mblLead == mbl1) {mblSub = mbl2; if( (blll ==0 && ell ==0) || (bhhh ==0 && ehh ==0) ) {truthMB =1;} else truthMB =0; } 
-        else if(mblLead == mbl1b) {mblSub = mbl2b; if((blll ==1 && ell ==0) || (bhhh ==0 && ehh ==1)) {truthMB =1;} else truthMB =0; } 
-        else if(mblLead == mbl2) {mblSub = mbl1b; if((blll ==0 && ell ==0) || (bhhh ==1 && ehh ==1)) {truthMB =1;} else truthMB =0; } 
-        else if(mblLead == mbl2b) {mblSub = mbl1b; if((blll ==1 && ell ==0) || (bhhh ==0 && ehh ==1)) {truthMB =1;} else truthMB =0; }         
+      double mblSub=-10; int truthMB=-2;
+        if(mblLead == mbl1) {mblSub = mbl2; if( blll == ell ) {truthMB =1;} else truthMB =0; } 
+        else if(mblLead == mbl1b) {mblSub = mbl2b; if( blll != ell ) {truthMB =1;} else truthMB =0; } 
+        else if(mblLead == mbl2) {mblSub = mbl1b; if( blll == ell ) {truthMB =1;} else truthMB =0; } 
+        else if(mblLead == mbl2b) {mblSub = mbl1b; if(blll != ell) {truthMB =1;} else truthMB =0; }         
         else cout<<"ops! "<< mblLead<< " "<<endl;  
-      //
+      // re-do truth with leadlead
+      if(blll == ell) {truthMB =1;} else truthMB =0;
+      // minimize the balance instead
+        double  mblBal1 , mblBal2; 
+      //mblLead = TMath::Min( Abs( mbl1 - mbl2) , Abs( mbl2b - mbl1b ));
+        if ( abs( mbl1 - mbl2) < abs( mbl2b - mbl1b )) {mblBal1 = mbl1 ; mblBal2=mbl2; if( blll == ell ) {truthMB =1;} else truthMB =0; } 
+        else {mblBal1 = mbl1 ; mblBal2=mbl2; if( blll != ell ) {truthMB =1;} else truthMB =0; } 
+      /////////////////////////////////////////////
       double vectorLep[12] = {leptons[0].pt(),leptons[0].eta(),leptons[1].pt(),leptons[1].eta(),
                            met , 
                            mll , mjj ,
-                           mblLead , mblSub , mbl1b , mbl2b , truthMB };
+                           mblLead , mblSub , mblBal1 , mblBal2 , truthMB };
       for(unsigned i=0;i<12;i++) basicLeptons[i]->Fill(vectorLep[i],weight);
       // tranverse mass --- total transverse mass
       // we do not reco the tops --- fill with other vectors with zero
@@ -420,7 +427,7 @@ int decla(int mass){
 
     TH1D *truthMBplot = new TH1D("truthMBplot",  
                                     label, 
-                                    5, -3, 2);
+                                    5, -1.5, 4.5);
     truthMBplot->GetXaxis()->SetTitle("lepton-jet truth");
     basicLeptons.push_back (truthMBplot);      
     

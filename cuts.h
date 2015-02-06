@@ -7,9 +7,9 @@ double DeltayVBF = 0;//3;
 double DeltaRVBF = 0;//3;
 bool shower=true;
 // To be applied only to hadron level events
-double const jet_ptmin=0.0; // parton for jet reconstruction
-double const jet_ptminfinal=0.0; // in final jet reconstruction
-double const rapmax=12.0; // for jet reconstruction
+double const jet_ptmin=35.0; // parton for jet reconstruction
+double const jet_ptminfinal=20.0; // in final jet reconstruction
+double const rapmax=5.0; // for jet reconstruction
 //
 double const genmasshad=2000; // genmass
 double const genmasshadmin=0; // genmass
@@ -21,12 +21,12 @@ double const bjetpt = 30.0; // the gen-level cut does not accept mistag
 double const mbblow = 0.0; // the gen-level cut does not accept mistag
 // analysis cuts
 double const mblcut = 190;
-double const etab = 12.5;
-double const etal = 12.5;
+double const etab = 5.;
+double const etal = 5.;
 double const etaj=15;
 double const higgs_mass = 125.0;
 int const cat =2; // minimum number of btag
-double const RR =0.01;
+double const RR =0.4;
 ////////////////////////////////////////
 // weights b-tag
 double const subjet2b=1;
@@ -52,8 +52,8 @@ int const n_subjet =3;
 double const wmass = 80.4;
 double const bmass = 4.7;
 double const tmass = 173.0;
-double const ptlepton = 00.;
-double const lepiso = 0.0;
+double const ptlepton = 20.;
+double const lepiso = 0.3;
 double const MeeMax = 30000.0;
 double const MetMin = 0.0;
 double const  wbtransmassMax = 3000;

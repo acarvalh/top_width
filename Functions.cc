@@ -30,18 +30,16 @@ void hello(){cout<<"\n\n\n HELLO!!!! \n\n"<<endl;}
 bool fullylep(int & bh, int & bl,vector<PseudoJet> jets, vector<PseudoJet> leptons,vector<PseudoJet> neutrinos, vector<int> btag, vector<int> btrue, double met, double weight, double cut, int type){
     ///////////////////////////////////////////////////////////////////
     // gen level info // had == plus
+    bool passGencut = false;
     int blll=-1, bhhh=-1, ell=-1, ehh=-1, null=-1, nuhh=-1;
     unsigned int jsize = jets.size();
     for(unsigned int nj1=0; nj1< jsize; nj1++) if(btrue[nj1]==5) bhhh=nj1; else if(btrue[nj1]==-5) blll=nj1; 
     int counttruth =-1; 
     // I have 2 isolated leptons, I assume are the two leading
-    for(unsigned int nj1=0; nj1< leptons.size(); nj1++) {
-        if(leptons.at(nj1).user_index() > 0) ell=nj1; 
-        else if(leptons.at(nj1).user_index() < 0) ehh=nj1;  
-    }
+    for(unsigned int nj1=0; nj1< leptons.size(); nj1++) 
+      {if(leptons.at(nj1).user_index() > 0) ell=nj1; else if(leptons.at(nj1).user_index() < 0) ehh=nj1;}
     for(unsigned int nj1=0; nj1< neutrinos.size(); nj1++) {if(neutrinos.at(nj1).user_index() > 0) nuhh=nj1; else  null=nj1;  }
     PseudoJet lepTtrue, hadTtrue;
-    bool passGencut = false;
     if(blll!=-1 && bhhh!=-1 && ell!=-1 && ehh!=-1 && null!=-1 && nuhh!=-1){ 
         lepTtrue = leptons.at(ell) + neutrinos.at(null) + jets.at(blll);
         hadTtrue = leptons.at(ehh) + neutrinos.at(nuhh) + jets.at(bhhh);
@@ -51,7 +49,7 @@ bool fullylep(int & bh, int & bl,vector<PseudoJet> jets, vector<PseudoJet> lepto
         else if(hadTtrue.m()>=cut && lepTtrue.m()<cut) counttruth=2;            
         else if(hadTtrue.m()>=cut && lepTtrue.m()>=cut) counttruth=3;
         if(counttruth==type && jets.at(blll).pt() > bjetpt && jets.at(bhhh).pt() > bjetpt && (jets.at(blll)+jets.at(bhhh)).m() > mbblow ) {    
-          Njets_passing_kLooseID->Fill(jsize,weight);
+          
           genmbb->Fill((jets.at(bhhh)+jets.at(blll)).m(),weight);        
           leptop->Fill(lepTtrue.m(),weight);
           hadtop->Fill(hadTtrue.m(),weight);
@@ -61,7 +59,7 @@ bool fullylep(int & bh, int & bl,vector<PseudoJet> jets, vector<PseudoJet> lepto
           genblepeta->Fill(jets.at(blll).eta(),weight);
           passGencut = true;
         }; // close if cut
-    };     
+    };    
     /////////////////////////////////////////////////////////////////////////
     // start the analysis --- if passed the gencut
     /////////////////////////////////////////////////////////////////////////
@@ -71,51 +69,45 @@ bool fullylep(int & bh, int & bl,vector<PseudoJet> jets, vector<PseudoJet> lepto
       // basic control plots + invariant mass of pairs
       double mll =  (leptons.at(0) + leptons.at(1)).m();
       double mjj = (jets.at(0) + jets.at(1)).m();
-      //
+      // //////////////////////////////////////////////// works for shower
       double mbl1 = (leptons.at(ehh) + jets.at(0)).m(); 
       double mbl2 = (leptons.at(ell) + jets.at(1)).m();    
       double mbl1b = (leptons.at(ell) + jets.at(0)).m();
       double mbl2b = (leptons.at(ehh) + jets.at(1)).m();
-      // minimize OnOn contamination --- pair the leading fermion with  
-      double mblLead = TMath::Min(mbl2, mbl1b);
-      double mblSub=-10; int truthMB=-2;
-        if(mblLead == mbl1) {mblSub = mbl2; if( blll == ell ) {truthMB =1;} else truthMB =0; } 
-        else if(mblLead == mbl1b) {mblSub = mbl2b; if( blll != ell ) {truthMB =1;} else truthMB =0; } 
-        else if(mblLead == mbl2) {mblSub = mbl1b; if( blll == ell ) {truthMB =1;} else truthMB =0; } 
-        else if(mblLead == mbl2b) {mblSub = mbl1b; if(blll != ell) {truthMB =1;} else truthMB =0; }         
-        else cout<<"ops! "<< mblLead<< " "<<endl;  
-      // re-do truth with leadlead
-      if(blll == ell) {truthMB =1;} else truthMB =0;
+      // ///////////////////////////////////////////////
+      // minimize OnOn contamination --- pair the each charge lepton with minimum  
+      // minimizing by plus
+      double mblLeadh = TMath::Min(mbl1, mbl2b); double mblSubh=-10; 
+      if(mblLeadh == mbl1) {mblSubh = mbl2;} else if(mblLeadh == mbl2b) {mblSubh = mbl1b;} 
+      //else cout<<"ops! "<< mblLeadh << " "<<endl;  // no when shower
+      // minimizing by minus
+      double mblLeadl = TMath::Min(mbl2, mbl1b); double mblSubl=-10; 
+      if(mblLeadl == mbl2) {mblSubl = mbl1;} else if(mblLeadl == mbl1b) {mblSubl = mbl2b;} 
+      //else cout<<"ops! "<< mblLeadl<< " "<<endl; // no when shower          
+      //if( blll == 0 ) {truthMB =1;} else truthMB =0; // if( blll == 1 ) {truthMB =1;} else truthMB =0;    
+      //if( bhhh == 0 ) {truthMB =1;} else truthMB =0;  //if( bhhh ==1 ) {truthMB =1;} else truthMB =0; 
+      ///////////////////////////////////////////////////
+      // true instead
+      double mblLeadT= (leptons.at(ell) + jets.at(blll)).m(); double mblSubT= (leptons.at(ehh) + jets.at(bhhh)).m(); 
+      ////////////////////////////////////////////////////
       // minimize the balance instead
-        double  mblBal1 , mblBal2; 
-      //mblLead = TMath::Min( Abs( mbl1 - mbl2) , Abs( mbl2b - mbl1b ));
-      if ( abs( mbl1 - mbl2) < abs( mbl2b - mbl1b )) {
-          mblBal1 = mbl1 ; mblBal2=mbl2; 
-          if( blll == ell ) {truthMB =1;} else truthMB =0; 
-      }  else { // for l-j pairing
-          mblBal1 = mbl1b ; mblBal2=mbl2b; 
-          if( blll != ell ) {truthMB =1;} else truthMB =0; 
-      } // close l-j pairing 
-        //mblLead= (leptons.at(ell) + jets.at(blll)).m(); 
-        //mblSub= (leptons.at(ehh) + jets.at(bhhh)).m(); 
-        /////////////////////////////////////////////
+      double  mblBal1 , mblBal2; int truthMB=-2;
+      if (abs(mbl1 - mbl2) < abs(mbl2b - mbl1b)) {mblBal1 = mbl1 ; mblBal2=mbl2; if(blll == ell) {truthMB =1;} else truthMB =0;}  
+      else {mblBal1 = mbl1b; mblBal2=mbl2b; if(blll != ell) {truthMB =1;} else truthMB =0;} // close l-j pairing 
       int typeReco = -1;  // 0 = onon ; 1 = onoff + offon ; 2 = offoff
       int typeRecoTruth = -1; // 0 = onon +true ; 1 = onon+false ; 3 = onoff + true ; 4 = onoff + false ; 6 = offoff + true ; 7 = offoff + false
-      if( mblBal1 > mblcut && mblBal2 > mblcut) 
-        {typeReco = 2; if(truthMB ==1) {typeRecoTruth =6;} else typeRecoTruth =7;  }
-      else if( (mblBal1 < mblcut && mblBal2 > mblcut) || (mblBal1 > mblcut && mblBal2 < mblcut)  ) 
-        {typeReco = 1; if(truthMB ==1) {typeRecoTruth =3;} else typeRecoTruth =4;  }  
-      else  if(mblBal1 < mblcut && mblBal2 < mblcut) 
-        {typeReco = 0; if(truthMB ==1) {typeRecoTruth =0;} else typeRecoTruth =1;  } 
+      if( mblBal1 > mblcut && mblBal2 > mblcut) {typeReco = 2; if(truthMB ==1) {typeRecoTruth =6;} else typeRecoTruth =7;  }
+      else if((mblBal1 < mblcut && mblBal2 > mblcut) || (mblBal1 > mblcut && mblBal2 < mblcut)) {typeReco = 1; if(truthMB ==1) {typeRecoTruth =3;} else typeRecoTruth =4;}  
+      else if(mblBal1 < mblcut && mblBal2 < mblcut) {typeReco = 0; if(truthMB ==1) {typeRecoTruth =0;} else typeRecoTruth =1;} 
       else cout << "oups !!" <<endl;
       //cout << "oups !!"<< typeRecoTruth <<endl;
-        ////////////////////////////////////////////
+      ////////////////////////////////////////////
       double vectorLep[13] = {leptons[0].pt(),leptons[0].eta(),leptons[1].pt(),leptons[1].eta(),
-                           met , 
-                           mll , mjj ,
-                           mblLead , mblSub , mblBal1 , mblBal2 , truthMB , typeRecoTruth};
+                           met, mll, mjj ,
+                           mblLeadh, mblLeadl, mblBal1, mblBal2, truthMB, typeRecoTruth};
       for(unsigned i=0;i<13;i++) basicLeptons[i]->Fill(vectorLep[i],weight);
       // tranverse mass --- total transverse mass
+      ///////////////////////////////////////////////////
       // we do not reco the tops --- fill with other vectors with zero
       double leptop[13]={170,0,0,0, //lept.m(),lept.pt(),lept.eta(),lept.phi(),
         90,0,0,0, //lepW.m(),lepW.pt(),lepW.eta(),lepW.phi(),
@@ -130,7 +122,7 @@ bool fullylep(int & bh, int & bl,vector<PseudoJet> jets, vector<PseudoJet> lepto
     return passGencut;
 } //close fullylep    
 /////////////////////////////////////////////////////////////////
-int recol( vector<PseudoJet> jets,vector<PseudoJet> leptons,vector<PseudoJet> neutrinos){
+int recol( vector<PseudoJet> jets,vector<PseudoJet> leptons,vector<PseudoJet> neutrinos, double weight){
     // from the jet collection find the hadronic W
     // construct met from all the rest
     // do a isolation vector
@@ -148,12 +140,13 @@ int recol( vector<PseudoJet> jets,vector<PseudoJet> leptons,vector<PseudoJet> ne
            ) nlep++; // close basic cuts
     } // close for nlep
     //cout<<nlep<<endl;
+    Nlep_passing_kLooseID->Fill(nlep,weight);
     return nlep;
 }// close recow
 /////////////////////////////////////////////////////////////////
-void isbtagged(vector<PseudoJet> jets, vector<int> & btag, vector<int> & bmistag, vector<int> & btrue);
+int isbtagged(vector<PseudoJet> jets, vector<int> & btag, vector<int> & bmistag, vector<int> & btrue);
 /////////////////////////////////////////////////////////////////
-int recojets(vector<PseudoJet> particles,vector<PseudoJet> & jets_akt, vector<int> & btag, vector<int> & bmistag, vector<int> & fattag, vector<int> & btrue){
+int recojets(vector<PseudoJet> particles,vector<PseudoJet> & jets_akt, vector<int> & btag, vector<int> & bmistag, vector<int> & fattag, vector<int> & btrue, double weight){
     JetDefinition akt(antikt_algorithm, RR);
     ClusterSequence cs_akt(particles, akt);
     //vector<PseudoJet> jets_akt;
@@ -174,7 +167,7 @@ int recojets(vector<PseudoJet> particles,vector<PseudoJet> & jets_akt, vector<in
     //for (unsigned int i = 0; i < particles.size(); i++) if(particles.at(i).pt()<jet_ptminfinal) {njets =0; return njets; } //jets_final.push_back(particles.at(i));
     njets = jets_final.size();
     //cout<<njets<<endl;
-    isbtagged(jets_akt, btag, bmistag,btrue); // check wheather the b(c)jet is b--(mis)tagable
+    int nbtag = isbtagged(jets_akt, btag, bmistag,btrue); // check wheather the b(c)jet is b--(mis)tagable
     // fill btags
     int count=0; for(unsigned int i = 0; i < njets; i++) if(btag[i]>0)count++; //btagselected->Fill(count,weight);
     ///////////////////// check tag
@@ -196,12 +189,15 @@ int recojets(vector<PseudoJet> particles,vector<PseudoJet> & jets_akt, vector<in
             if(filtered_jet.m()>Mfat) fattag.push_back(i); //see = 1; else see = 0; // no fat tag 
         } //else see = 0; 
     } // close find mass drop
-    //jets = jets_akt;
+    //jets = jets_akt;---
+    Njets_passing_kLooseID->Fill(njets,weight);
+    btagselected->Fill(nbtag,weight); 
     return njets;
 } // close cluster jets
 ////////////////////////////////////////////////////////////////////////////////////////////////
-void isbtagged(vector<PseudoJet> jets, vector<int> & btag, vector<int> & bmistag, vector<int> & btrue){ 
+int isbtagged(vector<PseudoJet> jets, vector<int> & btag, vector<int> & bmistag, vector<int> & btrue){ 
     unsigned int jsize = jets.size();
+    int nbtag=0;
     for (unsigned int i=0; i<jsize; i++) { // check wheter jet have inside a b's are taggable 
         vector<PseudoJet> constitu=jets.at(i).constituents();
         unsigned int csize = constitu.size();
@@ -210,7 +206,7 @@ void isbtagged(vector<PseudoJet> jets, vector<int> & btag, vector<int> & bmistag
             //cout<<"constituents flavour "<<constitu.at(j).user_index()<<endl;
             if(constitu.at(j).user_index() == 5 || constitu.at(j).user_index() == -5) {
                 seetruth++; id=constitu.at(j).user_index();
-                if(constitu.at(j).pt() > bjetpt && constitu.at(j).eta() < etab) see++;// to reco btag 
+                if(constitu.at(j).pt() > bjetpt && constitu.at(j).eta() < etab) {see++; nbtag++;}// to reco btag 
             }  
             //if( abs(constitu.at(j).user_index()) == 4  // work !!
             //     && constitu.at(j).pt() > bjetpt
@@ -226,6 +222,7 @@ void isbtagged(vector<PseudoJet> jets, vector<int> & btag, vector<int> & bmistag
     } // close for each jet
     //int numbb=0; for(unsigned i=0 ; i< btrue.size() ; i++ ) numbb += btrue[i];
     //cout<<" total "<<numbb<<endl;
+    return nbtag;
 } // close isbtagged
 /////////////////////////////////////////////////////////////////////////
 // save the histos
@@ -236,6 +233,7 @@ int save_hist(int isample,int reco,int sample){
     TFile f1(Mass, "recreate");
     f1.cd();
     Njets_passing_kLooseID->Write();
+    Nlep_passing_kLooseID->Write();
     btagselected->Write();
     genmbb->Write();
     leptop->Write();
@@ -249,6 +247,7 @@ int save_hist(int isample,int reco,int sample){
     for(unsigned i=0;i<19;i++) basicLeptop[i]->Write();
     f1.Close();
     Njets_passing_kLooseID->Reset();
+    Nlep_passing_kLooseID->Reset();
     btagselected->Reset();
     genmbb->Reset();
     leptop->Reset();
@@ -314,6 +313,12 @@ int decla(int mass){
                                       13, -0.5, 12.5);
     Njets_passing_kLooseID->GetYaxis()->SetTitle("");
     Njets_passing_kLooseID->GetXaxis()->SetTitle("Njets after showering"); 
+
+    Nlep_passing_kLooseID = new TH1D("nlep_passing_kLooseID_ct4",  
+                                      label, 
+                                      13, -0.5, 12.5);
+    Nlep_passing_kLooseID->GetYaxis()->SetTitle("");
+    Nlep_passing_kLooseID->GetXaxis()->SetTitle("Nleptons after showering"); 
     
     btagselected = new TH1D("btagselected",  
                             label, 
@@ -421,26 +426,26 @@ int decla(int mass){
     
     TH1D *jbleadMass = new TH1D("jbleadMass",  
                             label, 
-                            50, 0, 500);
-    jbleadMass->GetXaxis()->SetTitle("M_{jb} (GeV) leading");
+                            50, 0, 200);
+    jbleadMass->GetXaxis()->SetTitle("M_{l-j} (GeV) m(j l+) min");
     basicLeptons.push_back (jbleadMass);    
     
     TH1D *jbsubleadMass = new TH1D("jbsubleadMass",  
                                 label, 
-                                50, 0, 500);    
-    jbsubleadMass->GetXaxis()->SetTitle("M_{lj} (GeV) subleading");
+                                50, 0, 200);    
+    jbsubleadMass->GetXaxis()->SetTitle("M_{l-j} (GeV) m(j l-) min");
     basicLeptons.push_back (jbsubleadMass);    
     
     TH1D *jbleadXMass = new TH1D("jbleadXMass",  
                                  label, 
-                                 50, 0, 500);
-    jbleadXMass->GetXaxis()->SetTitle("M_{lj} (GeV) X leading");
+                                 50, 0, 200);
+    jbleadXMass->GetXaxis()->SetTitle("M_{l-j} (GeV) leading Balance");
     basicLeptons.push_back (jbleadXMass);    
     
     TH1D *jbsubleadXMass = new TH1D("jbsubleadXMass",  
                                     label, 
-                                    50, 0, 500);
-    jbsubleadXMass->GetXaxis()->SetTitle("M_{jb} (GeV) X subleading");
+                                    50, 0, 200);
+    jbsubleadXMass->GetXaxis()->SetTitle("M_{l-j} (GeV) subleading Balance");
     basicLeptons.push_back (jbsubleadXMass);      
 
     TH1D *truthMBplot = new TH1D("truthMBplot",  
@@ -451,7 +456,7 @@ int decla(int mass){
 
     TH1D *typetruthMBplot = new TH1D("typetruthMBplot",  
                                  label, 
-                                 11, -1.5, 10.5);
+                                 12, -1.5, 10.5);
     typetruthMBplot->GetYaxis()->SetTitle("% from selected events");
     typetruthMBplot->GetXaxis()->SetTitle("lepton-jet truth");
     basicLeptons.push_back (typetruthMBplot);      

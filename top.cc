@@ -40,7 +40,7 @@ using namespace std;
 int main() {
     srand( time(NULL) );
     hello();
-    string file, data;
+    //, dataparton = ".lhe.decayed" , datashower = ".lhe.shower";
     //////////////////////////////////////////////////
     // input
     // we are going to have only four samples, with 180 GeV mt selection, merge them and separate
@@ -49,9 +49,14 @@ int main() {
     string sample[5] = {"OnOnVary","OnOffVary","OffOnVary","OffOffVary","FullVary"};// folder
     string fileGam[13] = {"/Wt_0","/Wt_1","/Wt_2","/Wt_3","/Wt_4","/Wt_5","/Wt_6","/Wt_7","/Wt_8","/Wt_9","/Wt_10","/Wt_11","/Wt_12"}; // width
     double Gamma[13] ={0.6, 0.8, 1.01, 1.20, 1.40, 1.608, 1.8, 2, 2.2, 2.4, 2.6, 2.8, 3};
-    string label[5] = {"OnOn","OnOff","OffOn","OffOff","Full"}; 
-    if(!showering)data = ".lhe.decayed"; else data = ".lhe.shower";
+    string label[5] = {"OnOn","OnOff","OffOn","OffOff","Full"};
+    // our files are now all showered --- if there are less than 20 particles it is genlevel + EW radiation
+    // the list is ordered by status, so it is enought to take the first 6 particles and neglect FSR kiks as well IS remnants
+    string file , data = ".lhe.shower"; 
+    int maxnpart = -1 , minnpart = -1; if(showering) {maxnpart = 10000; minnpart = 15;}  else {maxnpart = 15; minnpart = 5;}  
+    cout<<" maxnpart "<<maxnpart<<endl;
     double cut[4] = {190,250,300,350};//180,185, 190, 195, 200, 210, 220, 230, 240, 250};
+    // If shower I read the two files
     /////////////////////////////////////////////////////////
     // information I want to make a table
     //
@@ -61,12 +66,12 @@ int main() {
     //vector<vector< double > > finaleventsfrom[4]; // trace / sample / type / mtdeff
     vector< vector< vector<  vector<double> > > > finaleventsN(13, 
                                                         vector< vector< vector<double> > > (10, 
-                                                                                            vector< vector<double> >(5, 
-                                                                                                                     vector<double>(4) ) ) ); // trace / sample / type / mtdeff
+                                                                vector< vector<double> >(5, 
+                                                                        vector<double>(4) ) ) ); // trace / sample / type / mtdeff
     vector< vector< vector<  vector<int> > > > finaleventsfrom(13,
                                                                vector< vector< vector<int> > > (10, 
-                                                                                                   vector< vector<int> >(5, 
-                                                                                                                            vector<int>(4) ) ) ); // trace / sample / type / mtdeff                                                               
+                                                                        vector< vector<int> >(5, 
+                                                                                vector<int>(4) ) ) ); // trace / sample / type / mtdeff                                                               
     /////////////////////////////////////////////////////////
     // gen ifo deffinitions
     //
@@ -78,7 +83,7 @@ int main() {
     //////////////////////////////////////////////////////////////////////////////////
     // to each cut deffinition and each one of the four region deffintions I pass by the four files and then save 
     for(unsigned int files=5; files<6; files++) // 13 width
-    for(unsigned int mtdef=0; mtdef<1; mtdef++) // 10 for gen cut deffinition
+    for(unsigned int mtdef=2; mtdef<3; mtdef++) // 10 for gen cut deffinition
       for(unsigned int type=0; type<4;type++) { // OnOn ... 
           double finalevents0[4]; // to be obsolete
           decla(0);
@@ -88,54 +93,61 @@ int main() {
              ///////////////////////////////////////////////
              double weight; 
              for(unsigned i=0; i<5; i++ ) 
-               {if(isample==i && nicepic) weight = CX[i]*lumi/nevents;   
-                   else if(isample==i && !nicepic) weight = lumi/nevents;} // this one makes raw efficiencies
+               {if(isample==i && nicepic) weight = CX[i]*lumi/nevents; else if(isample==i && !nicepic) weight = lumi/nevents;} // this one makes raw efficiencies
              //////////////////////////////////////////////
              file = path[0] + sample[isample] + fileGam[files] + data;
              cout<<"\n\n reading file = "<<file<<endl;
              ifstream in1; in1.open(file.c_str());
-             for(unsigned int ievent=0;ievent<100000;ievent++){ // read and process for each event 
+             for(unsigned int ievent=0;ievent<10;ievent++){ // read and process for each event 
                 double Px, Py , Pz, E; int pID, mother; unsigned int nparticles;
                 unsigned int counter=0,countert=0,counterl=0,countern=0, nb = 0;
                 vector<PseudoJet> particles;//jets 
                 vector<PseudoJet> neutrinos;
                 vector<PseudoJet> leptons; 
                 vector<PseudoJet> tops;                    
-                string c; in1>>c; in1>>nparticles; 
+                string c; in1>>c;  
                 /////////////////////////////////////////////////////////////////////
                 // read and understand
-                for(unsigned int ipart=0;ipart<nparticles;ipart++){ // loop on particles
-                  in1 >> pID >> Px >> Py >> Pz >> E ;//>> idup;
-                  if(abs(pID) < 6 || pID==21){ // quark / gluon
-                      particles.push_back(fastjet::PseudoJet(Px,Py,Pz,E)); 
-                      particles.at(counter).set_user_index(pID); //cout<<"particle flavour "<< particles.at(counter).user_index()<<endl;
-                    if(abs(pID) == 5) nb++; counter++; // count b's and no-b's
-                    } else if (abs(pID)==6) {tops.push_back(fastjet::PseudoJet(Px,Py,Pz,E)); countert++; // b--quarks
-                    } else if (abs(pID)==11 || abs(pID)==13) {
-                      leptons.push_back(fastjet::PseudoJet(Px,Py,Pz,E)); // 
-                      leptons.at(counterl).set_user_index(pID); counterl++; // save charge for gen deffinition
-                    } else if (abs(pID)==12 || abs(pID)==14) {
-                      neutrinos.push_back(fastjet::PseudoJet(Px,Py,Pz,E)); 
-                      neutrinos.at(countern).set_user_index(pID); countern++;
-                    } // close if 
+                // our files are now all showered --- if there are less than 20 particles it is genlevel + EW radiation
+                // the list is ordered by status, so it is enought to take the first 6 particles and neglect FSR kiks
+                 in1>>nparticles; if(nparticles < maxnpart && nparticles > minnpart ) {
+                   cout<<" nparticles "<<nparticles<<endl;
+                   for(unsigned int ipart=0;ipart<nparticles;ipart++){ // loop on particles
+                     in1 >> pID >> Px >> Py >> Pz >> E ;//>> idup;
+                     if(abs(pID) < 6 || pID==21){ // quark / gluon
+                       particles.push_back(fastjet::PseudoJet(Px,Py,Pz,E)); 
+                       particles.at(counter).set_user_index(pID); //cout<<"particle flavour "<< particles.at(counter).user_index()<<endl;
+                     if(abs(pID) == 5) nb++; counter++; // count b's and no-b's
+                     } else if (abs(pID)==6) {tops.push_back(fastjet::PseudoJet(Px,Py,Pz,E)); countert++; // b--quarks
+                     } else if (abs(pID)==11 || abs(pID)==13) {
+                       leptons.push_back(fastjet::PseudoJet(Px,Py,Pz,E)); // 
+                       leptons.at(counterl).set_user_index(pID); counterl++; // save charge for gen deffinition
+                     } else if (abs(pID)==12 || abs(pID)==14) {
+                       neutrinos.push_back(fastjet::PseudoJet(Px,Py,Pz,E)); 
+                       neutrinos.at(countern).set_user_index(pID); countern++;
+                     } // close if 
                   } // close for each particle
+                  } // close to  minnpart , maxnpart 
                   ////////////////////////////////////////////////////////////////////
                   // Analyse
                   vector<PseudoJet> jets; vector<int> btag, bmistag, fattag, btrue; int bh,bl; double met=0;
                   bool lepcuts=false, hadtopreco=false, lepwreco=false;
-                  int nlep =recol(jets,leptons,neutrinos); // lepton isolation and basic cuts  
-                  int njets = recojets(particles, jets,btag,bmistag,fattag,btrue); // jet deffinition and basic cuts
-                  int numbb=0; for(unsigned i =0; i< btrue.size() ; i++ ) if(abs(btrue[i])==5) numbb++; // "b--taggable gen-b's
+                  int nlep =recol(jets,leptons,neutrinos,weight); // lepton isolation and basic cuts  
+                  int njets = recojets(particles, jets,btag,bmistag,fattag,btrue,weight); // jet deffinition and basic cuts
+                  //cout<<" njets "<<njets<<endl;
+             /*     int numbb=0;
+                  if(!showering) {for(unsigned i =0; i< btrue.size() ; i++ ) if(abs(btrue[i])==5) numbb++;} else numbb = 5; // "b--taggable gen-b's
                   if(semilep && nlep>0 && njets>3 && numbb >1){ 
                     // NEED TO RE-IMPLEMENT THE MET cut!!!!
                     //if(lepcuts && reco == 0) hadtopreco=recohadt(bh,bl,jets,leptons,neutrinos,btag,btrue,met,weight,cut[mtdef],type); // reco by had
                     //if(lepcuts && reco == 1) lepwreco = recolept2step(bh,bl,jets,leptons,neutrinos,btag,btrue,met,weight,cut[mtdef],type); // by lep
-                      cout<<"ops"<<endl;
+                      cout<<"ops not semileptonic "<<endl;
                     }else if(!semilep && nlep>1 && njets>1 && numbb >1){ // close if semilep
                       hadtopreco = fullylep(bh,bl,jets,leptons,neutrinos,btag,btrue,met,weight,cut[mtdef],type); 
                         if(hadtopreco)finalevents++;// else if(type ==0 && isample==0) cout<<"ops"<<endl; 
                         //cout<<"here"<<endl;
                     } // close if !semilep
+              */
                 } in1.close(); // close for each event
               /////////////////////////////////////////////////////////////////////
               // intermediate check
@@ -158,7 +170,7 @@ int main() {
         NetEffMtGen.open("NetEffMtGen.txt"); // file to save
         cout<<" Gamm mtcut type sample NEtEv"<<endl;
         NetEffMtGen<<"Gamm mtcut type sample NEtEv"<<endl;
-        for(unsigned int files=5; files<6; files++)
+        for(unsigned int files=6; files<7; files++)
             for(unsigned int mtdef=0; mtdef<1; mtdef++) for(unsigned int type=0; type<4;type++) for(unsigned int isample=0; isample<4;isample++) {
                 cout<<        Gamma[files]<<" "<< cut[mtdef]<<" " <<label[type]<<" "<<sample[isample]<<" "<< finaleventsN[files][mtdef][isample][type]<<endl;
                 NetEffMtGen<< Gamma[files]<<" "<< cut[mtdef]<<" " << type      <<" "<<        isample<<" "<< finaleventsN[files][mtdef][isample][type]<<endl;

@@ -1,118 +1,151 @@
-// main12.cc is a part of the PYTHIA event generator.
-// Copyright (C) 2011 Torbjorn Sjostrand.
+// main11.cc is a part of the PYTHIA event generator.
+// Copyright (C) 2014 Torbjorn Sjostrand.
 // PYTHIA is licenced under the GNU GPL version 2, see COPYING for details.
 // Please respect the MCnet Guidelines, see GUIDELINES for details.
-
-// This is a simple test program. 
+// This is a simple test program.
 // It illustrates how Les Houches Event File input can be used in Pythia8.
 // It uses the ttsample.lhe input file, the latter only with 100 events.
-// Other samples could be generated as illustrated by main53.f.
-
-#include "Pythia.h"
-//#include <fstream>
+#include "Pythia8/Pythia.h"
 using namespace Pythia8;
-int main() {
-  Pythia pythia;                            
+using namespace std;
 
-  // Stick with default values, so do not bother with a separate file
-  // for changes. However, do one change, to show readString in action.
-  pythia.readString("Beams:frameType = 4");
-  // the analysis program
-  //pythia.readString("SLHA:readFrom = 2");
-  //pythia.readString("SLHA:file = Susy.txt "); // input the decay table
-  pythia.readString("PartonLevel:MI = off"); // Off multiple interactions
-  pythia.readString("PartonLevel:ISR = off"); // Shower on
-  pythia.readString("PartonLevel:FSR = off"); // Shower on
-  pythia.readString("HadronLevel:all = off"); // Of hadronization 
-  //
-  // select semileptonic events t>w+b 
-  pythia.readString("6:onMode = off");
-  pythia.readString("6:onIfMatch = 24 5"); // mu numu
-  pythia.readString("24:onMode = off");
-  pythia.readString("24:onIfMatch = 12 11"); // e ve
-  pythia.readString("24:onIfMatch = 14 13"); // mu numu
-  pythia.readString("-24:onMode = off");
-  pythia.readString("-24:onIfMatch = 12 -11"); // e ve
-  pythia.readString("-24:onIfMatch = 14 -13"); // mu numu 
-  string path;
-  //path = "/afs/cern.ch/user/a/acarvalh/ttbar_lo/Events/14tev/unweighted_events.lhe";
-  path = "/afs/cern.ch/work/a/acarvalh/ttbar_end_lo/Events/14tev/unweighted_events.lhe";
-  //string namefile_in=path;
-  //string sfile = "Beams:LHEF ="+namefile_in;
-  //pythia.readString(sfile.c_str());
-  // Initialize Les Houches Event File run. List initialization information.
-  pythia.init(path);      
-  string namefile_out;
-  namefile_out = "/afs/cern.ch/user/a/acarvalh/ttbar_lo/Events/14tev/unweighted_events.lhe.decayed";
-  ofstream out_pythia;
-  out_pythia.precision(3);
-  out_pythia.open(namefile_out.c_str());
-  // Allow for possibility of a few faulty events.
-  int nAbort = 10;
-  int iAbort = 0;
-  ////////////////
-  // Begin event loop; generate until none left in input file.     
-  for (int iEvent = 0;iEvent<10 ; ++iEvent) {
-    cout<<"\n ievent = "<<iEvent<<"\n"<<endl;
+int main() {
+      Pythia pythia;
+    // Generator. We here stick with default values, but changes
+  // could be inserted with readString or readFile.
+  for(unsigned int fol = 0; fol<4;fol++)
+   for(unsigned int gam = 5; gam<6; gam++){  
+    //unsigned int fol = 0; unsigned int gam = 0;
+       // Initialize Les Houches Event File run. List initialization information.
+       pythia.readString("Beams:frameType = 4");
+       string LHEInput = "Beams:LHEF = ";
+       string path = "/afs/cern.ch/work/a/acarvalh/tt_fulylep/";
+       string folder, files;
+      if(fol==0) folder = "OnOnVary/";
+      if(fol==1) folder = "OnOffVary/";
+      if(fol==2) folder = "OffOnVary/";
+      if(fol==3) folder = "OffOffVary/";
+       if(fol==4) folder = "FullVary/";      
+      ////////////////////////////////
+      if(gam==0) files = "Wt_0.lhe"; 
+      if(gam==1) files = "Wt_1.lhe"; 
+      if(gam==2) files = "Wt_2.lhe"; 
+      if(gam==3) files = "Wt_3.lhe"; 
+      if(gam==4) files = "Wt_4.lhe"; 
+      if(gam==5) files = "Wt_5.lhe"; 
+      if(gam==6) files = "Wt_6.lhe"; 
+      if(gam==7) files = "Wt_7.lhe"; 
+      if(gam==8) files = "Wt_8.lhe"; 
+      if(gam==9) files = "Wt_9.lhe"; 
+      if(gam==10) files = "Wt_10.lhe"; 
+      if(gam==11) files = "Wt_11.lhe"; 
+      if(gam==12) files = "Wt_12.lhe"; 
+      ///////////////////////////////
+      cout<<LHEInput+folder+files<<endl;
+      pythia.readString(LHEInput+path+folder+files);
+      pythia.readString("PartonLevel:all = on"); // Of hadronization
+      pythia.readString("HadronLevel:all = off"); // Of hadronization
+      //
+      pythia.readString("5:mayDecay = no");
+      pythia.readString("-5:mayDecay = no");  
+    string namefile_out=path+folder+files+".shower";
+    //cout<<namefile_out<<endl;  
+    ofstream out_pythia;
+    out_pythia.precision(5); 
+    out_pythia.open(namefile_out.c_str());
+      // Allow for possibility of a few faulty events.
+      int nAbort = 100;
+      int iAbort = 0;
+      // Begin event loop; generate until none left in input file.
+      pythia.init();
+    for (int iEvent = 0; ; ++iEvent) {// iEvent<10000
     // Generate events, and check whether generation failed.
     if (!pythia.next()) {
-      if (pythia.info.atEndOfFile()) break; 
+
+      // If failure because reached end of file then exit event loop.
+      if (pythia.info.atEndOfFile()) break;
+
+      // First few failures write off as "acceptable" errors, then quit.
       if (++iAbort < nAbort) continue;
       break;
-    }
-    // List first few events: Les Houches, hard process and complete.
-    //if (iEvent < nPrint) {     
-    //  pythia.LHAeventList();               
-    //  pythia.info.list();          
-    //  pythia.process.list();          
-    //  pythia.event.list();           
-    //}                           
-    cout<<"Number of particles showered = "<<pythia.process.size()<<endl;
-    vector<int> pID;
-    vector<double> px;
-    vector<double> py;
-    vector<double> pz;
-    vector<double> E;
-    vector<int> mother;
-    vector<int> code;
-    int counter=0;
-    for (int i = 0; i < pythia.process.size(); i++){
-      int particle_id = pythia.process[i].id();
-      int particle_status = pythia.process[i].status(); // change for "event" in hadron level 
-      int particle_mother = pythia.process[i].mother1();
-      // save only final state particles
-      if( 1>0
-         && (particle_status>0 )//|| abs(particle_id)==6 || abs(particle_id)==24)
-         //&& particle_id!=2101 && particle_id!=2103 // remove remnants 
-        ) { 
-        cout<<i<<" "<<particle_id<<" "<<particle_mother<<" "<<particle_status<<endl;
-        double ppx= pythia.process[i].px();
-        double ppy= pythia.process[i].py();
-        double ppz= pythia.process[i].pz();
-        double EE= pythia.process[i].e();
-        //cout<<px<<" "<<py<<" "<<pz<<" "<<E<<endl;
-        pID.push_back(particle_id);
-        px.push_back(ppx);
-        py.push_back(ppy);
-        pz.push_back(ppz);
-        E.push_back(EE);
-        mother.push_back(particle_mother);
-        code.push_back(particle_id);
-	if(particle_status>0) counter++;
-      }
-    }
-    // Save into file
-    out_pythia<<"#"<<endl;
-    cout<<"Number of final state particles = "<<counter<<"\n"<<endl;
-    out_pythia<<E.size()<<endl;
-     for(unsigned i=0;i<E.size();i++){
-       out_pythia<<pID.at(i)<<" "<<px.at(i)<<" "<<py.at(i)<<" "<<pz.at(i)<<" "<<E.at(i)<<" "<<endl;
-     }    
+     }
+      //cout<<"Number of particles = "<<pythia.process.size()<<endl;
+      vector<int> pID , pIDgen;
+      vector<double> px , pxgen;
+      vector<double> py , pygen;
+      vector<double> pz , pzgen;
+      vector<double> E , Egen;
+      vector<int> mother , mothergen;
+      vector<int> code , codegen;
+      // Some checks on the event record
+      // Check for example that at least we have two bs and two bbars
+      for (int i = 0; i < pythia.event.size(); i++){
+          int particle_id = pythia.event[i].id();
+          int particle_status = pythia.event[i].status();
+          int particle_mother = pythia.event[i].mother1();
+          // save only final state particles
+          if(particle_status>0){
+              //cout<<i<<" "<<particle_id<<" "<<particle_mother<<endl;
+              double ppx= pythia.event[i].px();
+              double ppy= pythia.event[i].py();
+              double ppz= pythia.event[i].pz();
+              double EE= pythia.event[i].e();
+              //cout<<ppx<<" "<<ppy<<" "<<ppz<<" "<<EE<<endl;
+              pID.push_back(particle_id);
+              px.push_back(ppx);
+              py.push_back(ppy);
+              pz.push_back(ppz);
+              E.push_back(EE);
+              mother.push_back(particle_mother);
+              code.push_back(particle_id);
+         } // close particle status
+        } // close event size 
+        ////////////////////////////////////////////////////////////////////////
+        // save also the process information, assuming the ordering is the same
+      for (int i = 0; i < pythia.event.size(); i++){
+          int particle_idgen = pythia.process[i].id();
+          int particle_statusgen = pythia.process[i].status();
+          int particle_mothergen = pythia.process[i].mother1();
+          // save only final state particles
+          if(particle_statusgen>0 && ( abs(particle_idgen) == 5 || abs(particle_idgen) == 11 || abs(particle_idgen) == 12 || abs(particle_idgen) == 13 || abs(particle_idgen) == 14 ) && abs(particle_mothergen) <10  ){ // && ( abs(particle_mothergen) <10 && particle_mothergen != 0) ){ // 
+              //cout<<i<<" "<<particle_id<<" "<<particle_mother<<endl;
+              double ppxgen= pythia.process[i].px();
+              double ppygen= pythia.process[i].py();
+              double ppzgen= pythia.process[i].pz();
+              double EEgen= pythia.process[i].e();
+              //cout<<ppx<<" "<<ppy<<" "<<ppz<<" "<<EE<<endl;
+              pIDgen.push_back(particle_idgen);
+              pxgen.push_back(ppxgen);
+              pygen.push_back(ppygen);
+              pzgen.push_back(ppzgen);
+              Egen.push_back(EEgen);
+              mothergen.push_back(particle_mothergen);
+              codegen.push_back(particle_idgen);
+          } // close particle status
+      } // close process size
+      //////////////////////////////////////////////////////////////////
+      // Save into file
+        //cout<<"Number of final state particles = "<<E.size()<<"\n"<<endl;
+        out_pythia.flush();
+        /////////////////////////////////////////////////////////////////////
+        out_pythia<<"#"<<endl;
+        out_pythia<<E.size()<<endl;
+        for(unsigned i=0;i<E.size();i++) {out_pythia<<pID.at(i)<<" "<<px.at(i)<<" "<<py.at(i)<<" "<<pz.at(i)<<" "<<E.at(i)<<" "<<endl;}
+        ///////////////////////////////////////////////////////////////////////
+        // save also the process information, assuming the ordering is the same --- it will be a separated process 
+        // it can contain fermionic radiation -- I hope the first are the gen! it is! It is  ordered by status
+        out_pythia<<"#"<<endl;
+        out_pythia<<Egen.size()<<endl;
+        for(unsigned i=0;i<Egen.size();i++) {out_pythia<<pIDgen.at(i)<<" "<<pxgen.at(i)<<" "<<pygen.at(i)<<" "<<pzgen.at(i)<<" "<<Egen.at(i)<<" "<<endl;}
+       	/////////////////////////////////////////////////////////////////////// <<mothergen.at(i)<<" "
   // End of event loop.
-  }                                         
+  }
   out_pythia.close();
+  cout<<namefile_out<<endl;
   // Give statistics. Print histogram.
-  pythia.statistics();
-  // Done.                           
+  pythia.stat();
+  //cout << nCharged;
+  } // close for folder
+  // Done.
   return 0;
 }

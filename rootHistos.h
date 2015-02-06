@@ -7,6 +7,7 @@ vector<TH1D *> basicLeptons;
 vector<TH1D *> basicHadtop;
 vector<TH1D *> basicLeptop;
 TH1D *Njets_passing_kLooseID;
+TH1D *Nlep_passing_kLooseID;
 TH1D *btagselected;
 TH1D *leptop;
 TH1D *hadtop;

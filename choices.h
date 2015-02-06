@@ -1,6 +1,6 @@
 // inputs
 // Analysis
-bool semilep=false;
+bool semilep=true;
 bool showering=false;
 bool bkg = false;
 bool nicepic = true; // if false makes raw efficiencies, if true just make the plots

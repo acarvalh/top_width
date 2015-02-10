@@ -19,5 +19,5 @@ bool recolept2step(int & bh, int & bl,vector<PseudoJet> jets, vector<PseudoJet> 
 bool recotlepeq(int & bh, int & bl,vector<PseudoJet> jets, vector<PseudoJet> leptons,vector<PseudoJet> neutrinos, 
                 vector<int> btag, vector<int> btrue, double met, double weight, double cut, int type);
 
-bool fullylep(int & bh, int & bl, vector<PseudoJet> jets,vector<PseudoJet> leptons,vector<PseudoJet> neutrinos, 
+int fullylep(int & bh, int & bl, int & ,  vector<PseudoJet> jets,vector<PseudoJet> leptons,vector<PseudoJet> neutrinos, 
               vector<int> btag, vector<int> btrue, double met,double weight);

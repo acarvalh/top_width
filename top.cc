@@ -56,7 +56,7 @@ int main() {
     string file , data = ".lhe.shower"; 
     int maxnpart = -1 , minnpart = -1; if(showering) {maxnpart = 10000; minnpart = 9;}  else {maxnpart = 15; minnpart = 5;}  
     cout<<" maxnpart "<<maxnpart<<endl;
-    double cut[4] = {180,250,300,350};//180,185, 190, 195, 200, 210, 220, 230, 240, 250};
+    double cut[4] = {190,250,300,350};//180,185, 190, 195, 200, 210, 220, 230, 240, 250};
     // If shower I read the two files
     /////////////////////////////////////////////////////////
     // information I want to make a table
@@ -69,6 +69,41 @@ int main() {
                                                         vector< vector< vector<double> > > (10, 
                                                                 vector< vector<double> >(5, 
                                                                         vector<double>(4) ) ) ); // trace / sample / type / mtdeff
+    ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    vector< vector< vector<  vector<double> > > > finaleventsN0(13, 
+                                                               vector< vector< vector<double> > > (10, 
+                                                                                                   vector< vector<double> >(5, 
+                                                                                                                            vector<double>(4) ) ) ); // trace / sample / type / mtdeff
+    vector< vector< vector<  vector<double> > > > finaleventsN1(13, 
+                                                               vector< vector< vector<double> > > (10, 
+                                                                                                   vector< vector<double> >(5, 
+                                                                                                                            vector<double>(4) ) ) ); // trace / sample / type / mtdeff
+    vector< vector< vector<  vector<double> > > > finaleventsN2(13, 
+                                                               vector< vector< vector<double> > > (10, 
+                                                                                                   vector< vector<double> >(5, 
+                                                                                                                            vector<double>(4) ) ) ); // trace / sample / type / mtdeff
+    vector< vector< vector<  vector<double> > > > finaleventsN3(13, 
+                                                               vector< vector< vector<double> > > (10, 
+                                                                                                   vector< vector<double> >(5, 
+                                                                                                                            vector<double>(4) ) ) ); // trace / sample / type / mtdeff
+    //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    vector< vector< vector<  vector<double> > > > finaleventsN1D0(13, 
+                                                                vector< vector< vector<double> > > (10, 
+                                                                                                    vector< vector<double> >(5, 
+                                                                                                                             vector<double>(4) ) ) ); // trace / sample / type / mtdeff
+    vector< vector< vector<  vector<double> > > > finaleventsN1D1(13, 
+                                                                vector< vector< vector<double> > > (10, 
+                                                                                                    vector< vector<double> >(5, 
+                                                                                                                             vector<double>(4) ) ) ); // trace / sample / type / mtdeff
+    vector< vector< vector<  vector<double> > > > finaleventsN1D2(13, 
+                                                                vector< vector< vector<double> > > (10, 
+                                                                                                    vector< vector<double> >(5, 
+                                                                                                                             vector<double>(4) ) ) ); // trace / sample / type / mtdeff
+    vector< vector< vector<  vector<double> > > > finaleventsN1D3(13, 
+                                                                vector< vector< vector<double> > > (10, 
+                                                                                                    vector< vector<double> >(5, 
+                                                                                                                             vector<double>(4) ) ) ); // trace / sample / type / mtdeff
+    //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     vector< vector< vector<  vector<int> > > > finaleventsfrom(13,
                                                                vector< vector< vector<int> > > (10, 
                                                                         vector< vector<int> >(5, 
@@ -83,13 +118,15 @@ int main() {
     double nevents =100000, lumi = 50;// /fb
     //////////////////////////////////////////////////////////////////////////////////
     // to each cut deffinition and each one of the four region deffintions I pass by the four files and then save 
-    for(unsigned int files=5; files<6; files++) // 13 width
-    for(unsigned int mtdef=2; mtdef<3; mtdef++) // 10 for gen cut deffinition
-      for(unsigned int type=0; type<1;type++) { // OnOn ... 
-          double finalevents0[4]; // to be obsolete
+    for(unsigned int files=0; files<13; files++) // 13 width
+    for(unsigned int mtdef=0; mtdef<2; mtdef++) // 10 for gen cut deffinition
+      for(unsigned int type=0; type<4;type++) { // OnOn ... 
+          double finaleventscheck[4]; // to be obsolete
           decla(0);
-           for(unsigned int isample=0; isample<1;isample++) { // ononFile ....              
-             double finalevents=0; // counter for net eff
+           for(unsigned int isample=0; isample<4;isample++) { // ononFile ....              
+             double finalevents=0; 
+             double finalevents0=0; double finalevents1=0; double finalevents2=0; double finalevents3=0; // counter for net eff
+             double finalevents1D0=0; double finalevents1D1=0; double finalevents1D2=0; double finalevents1D3=0; // counter for net eff
              ///////////////////////////////////////////////
              double weight; 
              for(unsigned i=0; i<5; i++ ) 
@@ -139,11 +176,12 @@ int main() {
                  bool GenLevel = GenLevelDilep(particlesgen, leptonsgen, neutrinosgen, cut[mtdef], weight, type); //cout<<"GenLevel "<<GenLevel<<endl;
                  ////////////////////////////////////////////////////////////////////
                  // Analyse
+                 int reco1D1=-1 , reco1D2=-1 , reco2D=-1;
                  if(GenLevel && nparticles > minnpart ){
                     //cout<<ievent<<" nparticles "<<nparticles<<endl; 
                     //cout<<ievent<<" nparticlesgen "<<nparticlesgen<<endl;
                     vector<PseudoJet> jets; vector<int> btag, bmistag, fattag, btrue; int bh,bl; double met=0;
-                    bool lepcuts=false, hadtopreco=false, lepwreco=false;
+                    bool lepcuts=false, lepwreco=false; int hadtopreco;
                     int njets = recojets(particles, jets,btag,bmistag,fattag,btrue,weight); // jet deffinition and basic cuts
                     int nlep =recol(jets,leptons,neutrinos,weight); // lepton isolation and basic cuts  
                     //int numbb=0;
@@ -154,21 +192,37 @@ int main() {
                     //if(lepcuts && reco == 0) hadtopreco=recohadt(bh,bl,jets,leptons,neutrinos,btag,btrue,met,weight,cut[mtdef],type); // reco by had
                     //if(lepcuts && reco == 1) lepwreco = recolept2step(bh,bl,jets,leptons,neutrinos,btag,btrue,met,weight,cut[mtdef],type); // by lep
                       cout<<"ops not semileptonic "<<endl;
-                     }else if(!semilep && nlep>1 && njets>1){hadtopreco = fullylep(bh,bl,jets,leptons,neutrinos,btag,btrue,met,weight); if(hadtopreco) finalevents++;} 
+                     } else if(!semilep && nlep>1 && njets>1){ 
+                         hadtopreco = fullylep(reco1D1,reco1D2,reco2D,jets,leptons,neutrinos,btag,btrue,met,weight); 
+                         if(hadtopreco>-1)finalevents++;
+                         if(reco2D==0)finalevents0++; else if(reco2D==1) finalevents1++; else if(reco2D==2) finalevents2++; else if(reco2D==3) finalevents3++; 
+                         if(reco1D1==0)finalevents1D0++; else if(reco1D1==1) finalevents1D1++; 
+                         if(reco1D2==2) finalevents1D2++; else if(reco1D2==3) finalevents1D3++;
+                     } // close fullylep 
                  } // close GenLevel
                 } in1.close(); // close for each event
               /////////////////////////////////////////////////////////////////////
               // intermediate check
-              finalevents0[isample] = finalevents;
-              double neventslumi = (finalevents0[0]*CX[0]+finalevents0[1]*CX[1]+finalevents0[2]*CX[2]+finalevents0[3]*CX[3])*1000*lumi/nevents;
+              finaleventscheck[isample] = finalevents; 
+              double neventslumi = (finaleventscheck[0]*CX[0]+finaleventscheck[1]*CX[1]+finaleventscheck[2]*CX[2]+finaleventscheck[3]*CX[3])*1000*lumi/nevents;
               //double neventsa9ll = (CX[0]+CX[1]+CX[2])*1000*lumi;
-              cout<<" raw nevents passed = "<< finalevents0[isample]<<" sample "<<isample<<endl;               
+              cout<<" raw nevents passed = "<< finaleventscheck[isample]<<" sample "<<isample<<endl;               
               cout<<"\n\n closing file = "<<fileshower<<endl; //cout<<" "<<endl;
               cout<<"mt cut ="<< cut[mtdef]<<endl;   
               // save to table
-              int tablecounter=0;
+              //int tablecounter=0;
               finaleventsN[files][mtdef][isample][type] = finalevents; // raw events always! 
-              //finaleventsfrom[mtdef][isample][type] = isample + type; //finaleventsfrom.at(tablecounter).push_back(type);
+              // for 2D couting
+              finaleventsN0[files][mtdef][isample][type] = finalevents0; // raw events always!                
+              finaleventsN1[files][mtdef][isample][type] = finalevents1; // raw events always! 
+              finaleventsN2[files][mtdef][isample][type] = finalevents2; // raw events always!           
+              finaleventsN3[files][mtdef][isample][type] = finalevents3; // raw events always!           
+              // for 1D couting
+              finaleventsN1D0[files][mtdef][isample][type] = finalevents1D0; // raw events always!                
+              finaleventsN1D1[files][mtdef][isample][type] = finalevents1D1; // raw events always! 
+              finaleventsN1D2[files][mtdef][isample][type] = finalevents1D2; // raw events always!           
+              finaleventsN1D3[files][mtdef][isample][type] = finalevents1D3; // raw events always!           
+               //finaleventsfrom[mtdef][isample][type] = isample + type; //finaleventsfrom.at(tablecounter).push_back(type);
               } // close for sample
               save_hist(files,mtdef,type,showering); // hitogram / type / mtdef ==> after pass by the 4 samples
         } // close fo type and mtcut and gam
@@ -176,13 +230,23 @@ int main() {
         // make the table 
         ofstream NetEffMtGen;
         NetEffMtGen.open("NetEffMtGen.txt"); // file to save
-        cout<<" Gamm mtcut type sample NEtEv"<<endl;
-        NetEffMtGen<<"Gamm mtcut type sample NEtEv"<<endl;
+        cout<<" Gamm mtcut type sample NEtEv2D0 NEtEv2D1 NEtEv2D2 NEtEv2D3 NEtEv1D0 NEtEv1D1 NEtEv1D2 NEtEv1D3 total"<<endl;
+        NetEffMtGen<<"Gamm mtcut type sample NEtEv2D0 NEtEv2D1 NEtEv2D2 NEtEv2D3 NEtEv1D0 NEtEv1D1 NEtEv1D2 NEtEv1D3 total"<<endl;
         int nev; if(showering) nev=50000; else nev=100000; 
-        for(unsigned int files=5; files<6; files++)
-            for(unsigned int mtdef=2; mtdef<3; mtdef++) for(unsigned int type=0; type<1;type++) for(unsigned int isample=0; isample<1;isample++) {
-                cout<<        Gamma[files]<<" "<< cut[mtdef]<<" " <<label[type]<<" "<<sample[isample]<<" "<< finaleventsN[files][mtdef][isample][type] <<endl;
-                NetEffMtGen<< Gamma[files]<<" "<< cut[mtdef]<<" " << type      <<" "<<        isample<<" "<< finaleventsN[files][mtdef][isample][type]<<endl;
+        for(unsigned int files=0; files<13; files++)
+            for(unsigned int mtdef=0; mtdef<2; mtdef++) for(unsigned int type=0; type<4;type++) for(unsigned int isample=0; isample<4;isample++) {
+             cout<<        Gamma[files]<<" "<< cut[mtdef]<<" " <<label[type]<<" "<<sample[isample]
+                           <<" "<<finaleventsN0[files][mtdef][isample][type]<<" "<<finaleventsN1[files][mtdef][isample][type]
+                           <<" "<<finaleventsN2[files][mtdef][isample][type]<<" "<<finaleventsN3[files][mtdef][isample][type] 
+                           <<" "<<finaleventsN1D0[files][mtdef][isample][type]<<" "<<finaleventsN1D1[files][mtdef][isample][type]
+                           <<" "<<finaleventsN1D2[files][mtdef][isample][type]<<" "<<finaleventsN1D3[files][mtdef][isample][type] 
+                           <<" "<<finaleventsN[files][mtdef][isample][type]<<endl;
+             NetEffMtGen<< Gamma[files]<<" "<< cut[mtdef]<<" " << type      <<" "<<        isample
+                          <<" "<<finaleventsN0[files][mtdef][isample][type]<<" "<<finaleventsN1[files][mtdef][isample][type]
+                          <<" "<<finaleventsN2[files][mtdef][isample][type]<<" "<<finaleventsN3[files][mtdef][isample][type] 
+                          <<" "<<finaleventsN1D0[files][mtdef][isample][type]<<" "<<finaleventsN1D1[files][mtdef][isample][type]
+                          <<" "<<finaleventsN1D2[files][mtdef][isample][type]<<" "<<finaleventsN1D3[files][mtdef][isample][type] 
+                          <<" "<<finaleventsN[files][mtdef][isample][type]<<endl;
         //cout<<" "<<endl;
         //cout<<" "<<mtdef<<" "<< type<<" "<<isample<<" "<<finaleventsfrom[mtdef][isample][type]<<endl;
         } //

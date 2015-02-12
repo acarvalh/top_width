@@ -10,12 +10,13 @@ using namespace Pythia8;
 using namespace std;
 
 int main() {
-      Pythia pythia;
+
     // Generator. We here stick with default values, but changes
   // could be inserted with readString or readFile.
   for(unsigned int fol = 0; fol<4;fol++)
-   for(unsigned int gam = 5; gam<6; gam++){  
-    //unsigned int fol = 0; unsigned int gam = 0;
+   for(unsigned int gam = 7; gam<13; gam++){  
+      Pythia pythia;
+       //unsigned int fol = 0; unsigned int gam = 0;
        // Initialize Les Houches Event File run. List initialization information.
        pythia.readString("Beams:frameType = 4");
        string LHEInput = "Beams:LHEF = ";
@@ -48,11 +49,17 @@ int main() {
       //
       pythia.readString("5:mayDecay = no");
       pythia.readString("-5:mayDecay = no");  
+       //cout<<namefile_out<<endl;  
     string namefile_out=path+folder+files+".shower";
-    //cout<<namefile_out<<endl;  
     ofstream out_pythia;
     out_pythia.precision(5); 
     out_pythia.open(namefile_out.c_str());
+       //
+       string namefile_outME=path+folder+files+".decayed";       
+       ofstream out_pythiaME;
+       out_pythiaME.precision(5); 
+       out_pythiaME.open(namefile_outME.c_str());
+       //
       // Allow for possibility of a few faulty events.
       int nAbort = 100;
       int iAbort = 0;
@@ -134,9 +141,10 @@ int main() {
         ///////////////////////////////////////////////////////////////////////
         // save also the process information, assuming the ordering is the same --- it will be a separated process 
         // it can contain fermionic radiation -- I hope the first are the gen! it is! It is  ordered by status
-        out_pythia<<"#"<<endl;
-        out_pythia<<Egen.size()<<endl;
-        for(unsigned i=0;i<Egen.size();i++) {out_pythia<<pIDgen.at(i)<<" "<<pxgen.at(i)<<" "<<pygen.at(i)<<" "<<pzgen.at(i)<<" "<<Egen.at(i)<<" "<<endl;}
+        out_pythiaME.flush();
+        out_pythiaME<<"#"<<endl;
+        out_pythiaME<<Egen.size()<<endl;
+        for(unsigned i=0;i<Egen.size();i++) {out_pythiaME<<pIDgen.at(i)<<" "<<pxgen.at(i)<<" "<<pygen.at(i)<<" "<<pzgen.at(i)<<" "<<Egen.at(i)<<" "<<endl;}
        	/////////////////////////////////////////////////////////////////////// <<mothergen.at(i)<<" "
   // End of event loop.
   }

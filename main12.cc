@@ -108,27 +108,6 @@ int main() {
          } // close particle status
         } // close event size 
         ////////////////////////////////////////////////////////////////////////
-        // save also the process information, assuming the ordering is the same
-      for (int i = 0; i < pythia.event.size(); i++){
-          int particle_idgen = pythia.process[i].id();
-          int particle_statusgen = pythia.process[i].status();
-          int particle_mothergen = pythia.process[i].mother1();
-          // save only final state particles
-          if(particle_statusgen>0 && ( abs(particle_idgen) == 5 || abs(particle_idgen) == 11 || abs(particle_idgen) == 12 || abs(particle_idgen) == 13 || abs(particle_idgen) == 14 ) && abs(particle_mothergen) <10  ){ // && ( abs(particle_mothergen) <10 && particle_mothergen != 0) ){ // 
-              //cout<<i<<" "<<particle_id<<" "<<particle_mother<<endl;
-              double ppxgen= pythia.process[i].px();
-              double ppygen= pythia.process[i].py();
-              double ppzgen= pythia.process[i].pz();
-              double EEgen= pythia.process[i].e();
-              //cout<<ppx<<" "<<ppy<<" "<<ppz<<" "<<EE<<endl;
-              pIDgen.push_back(particle_idgen);
-              pxgen.push_back(ppxgen);
-              pygen.push_back(ppygen);
-              pzgen.push_back(ppzgen);
-              Egen.push_back(EEgen);
-              mothergen.push_back(particle_mothergen);
-              codegen.push_back(particle_idgen);
-          } // close particle status
       } // close process size
       //////////////////////////////////////////////////////////////////
       // Save into file
@@ -139,13 +118,7 @@ int main() {
         out_pythia<<E.size()<<endl;
         for(unsigned i=0;i<E.size();i++) {out_pythia<<pID.at(i)<<" "<<px.at(i)<<" "<<py.at(i)<<" "<<pz.at(i)<<" "<<E.at(i)<<" "<<endl;}
         ///////////////////////////////////////////////////////////////////////
-        // save also the process information, assuming the ordering is the same --- it will be a separated process 
-        // it can contain fermionic radiation -- I hope the first are the gen! it is! It is  ordered by status
-        out_pythiaME.flush();
-        out_pythiaME<<"#"<<endl;
-        out_pythiaME<<Egen.size()<<endl;
-        for(unsigned i=0;i<Egen.size();i++) {out_pythiaME<<pIDgen.at(i)<<" "<<pxgen.at(i)<<" "<<pygen.at(i)<<" "<<pzgen.at(i)<<" "<<Egen.at(i)<<" "<<endl;}
-       	/////////////////////////////////////////////////////////////////////// <<mothergen.at(i)<<" "
+     	/////////////////////////////////////////////////////////////////////// <<mothergen.at(i)<<" "
   // End of event loop.
   }
   out_pythia.close();
